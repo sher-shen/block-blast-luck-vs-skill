@@ -1,0 +1,18 @@
+{
+  "4": {
+    "evpi_med": 1080.0,
+    "cohort_n": 19
+  },
+  "8": {
+    "evpi_med": 930.0,
+    "cohort_n": 23
+  },
+  "16": {
+    "evpi_med": 940.0,
+    "cohort_n": 28
+  },
+  "32": {
+    "evpi_med": 1060.0,
+    "cohort_n": 25
+  }
+}

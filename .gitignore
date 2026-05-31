@@ -3,3 +3,4 @@ __pycache__/
 .DS_Store
 # Hub 内部记忆，不进 repo
 memory/
+*.out

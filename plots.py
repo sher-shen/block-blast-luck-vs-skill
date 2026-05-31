@@ -28,8 +28,7 @@ def fig1():
     x0, x1 = 150, 700
     players = [("random (乱放)", R["players"]["random"]["mean"], "#bbb"),
                ("greedy (贪心)", R["players"]["greedy"]["mean"], "#7aa7d8"),
-               ("strong (在线最强)", R["paired"]["strong"]["mean"], "#2f6db5"),
-               ("ORACLE (开未来牌)", R["oracle"]["mean"], "#e07b39")]
+               ("strong (在线最强)", R["paired"]["strong"]["mean"], "#2f6db5")]
     lo, hi = 1, max(p[1] for p in players) * 1.3
     def X(v): return x0 + (math.log10(max(v, 1)) - math.log10(lo)) / \
         (math.log10(hi) - math.log10(lo)) * (x1 - x0)
@@ -45,10 +44,9 @@ def fig1():
         s.append(text(x0 - 8, y + bh/2 - 2, nm, 13, "end", "#333"))
         s.append(text(X(val) + 6, y + bh/2 - 2, f"{val:.0f}", 12, "start", "#333", "bold"))
         y += bh
-    # 标注
-    xr, xg, xs2, xo = (X(players[0][1]), X(players[1][1]), X(players[2][1]), X(players[3][1]))
+    # 标注（oracle/运气缺口已迁出，见 fig3 存活 + fig4 EVPI）
     s.append(text(x0, 305, f"技能地板：乱放→会玩 ≈ {players[2][1]/players[0][1]:.0f}×", 12, "start", "#2f6db5", "bold"))
-    s.append(text(x1, 305, f"运气=信息缺口 ≈ {R['oracle_gap_ratio']*100:.0f}%", 12, "end", "#e07b39", "bold"))
+    s.append(text(x1, 305, "运气(信息价值)见 fig3/fig4 两通道", 12, "end", "#e07b39", "bold"))
     s.append('</svg>')
     open("figures/fig1_players.svg", "w").write("\n".join(s))
 

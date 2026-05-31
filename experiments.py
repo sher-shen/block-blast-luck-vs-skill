@@ -107,11 +107,10 @@ if __name__ == "__main__":
         "la_strongbase_vs_strong": paired(P_las, P_strong),
         "la_strongbase_vs_la_greedy": paired(P_las, P_lag)}
 
-    # 4) oracle 缺口
-    print("[4/4] oracle 缺口 (慢)...")
-    orc = [play_oracle(s, D=3) for s in range(NP)]
-    R["oracle"] = stat(orc)
-    R["oracle_gap_ratio"] = 1 - R["paired"]["strong"]["mean"] / R["oracle"]["mean"]
+    # 4) oracle 缺口 —— 【已撤回】旧 ratio-of-means 口径(beam-rollout seer 近乎不死→分差
+    #    被存活长度主导、本质无界)。新口径=固定 horizon 两通道，见 oracle_analysis.py。
+    R["oracle_RETRACTED"] = ("旧 78% 缺口口径已撤回。新口径见 oracle_analysis.py: "
+                             "通道A 存活 hazard(survival.json) + 通道B EVPI(channelB.json)。")
 
     with open("results.json", "w") as f:
         json.dump(R, f, indent=2, ensure_ascii=False)
@@ -119,7 +118,6 @@ if __name__ == "__main__":
     print(f"  方差分解(熟练间): 技能{R['decomp_skilled']['skill']*100:.0f}% "
           f"运气{R['decomp_skilled']['luck']*100:.0f}% 交互{R['decomp_skilled']['inter']*100:.0f}%")
     print(f"  交叉点≈{R['crossover']:.0f}  天花板≈{ceiling:.0f}")
-    print(f"  oracle≈{R['oracle']['mean']:.0f}  在线strong≈{R['paired']['strong']['mean']:.0f}  "
-          f"缺口={R['oracle_gap_ratio']*100:.0f}%")
+    print("  oracle 缺口已迁至 oracle_analysis.py (两通道, 见 README)")
     print(f"  收敛: LA_strongbase−strong={R['paired']['la_strongbase_vs_strong']['mean_diff']:+.0f}"
           f"±{R['paired']['la_strongbase_vs_strong']['se']:.0f}")

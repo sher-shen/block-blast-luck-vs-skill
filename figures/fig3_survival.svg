@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="760" height="420" fill="white"/>
+<text x="380.0" y="28" font-size="16" text-anchor="middle" fill="#111" font-weight="bold">通道A 存活运气：活过 t 轮的比例（固定 horizon）</text>
+<text x="380.0" y="48" font-size="12" text-anchor="middle" fill="#777" font-weight="normal">有前瞻(seer)几乎不死 → 死亡基本可避免=技能；不可约运气=罕见杀手序列</text>
+<line x1="80" y1="330" x2="700" y2="330" stroke="#eee"/>
+<text x="74" y="334" font-size="11" text-anchor="end" fill="#999" font-weight="normal">0.00</text>
+<line x1="80" y1="265.0" x2="700" y2="265.0" stroke="#eee"/>
+<text x="74" y="269.0" font-size="11" text-anchor="end" fill="#999" font-weight="normal">0.25</text>
+<line x1="80" y1="200.0" x2="700" y2="200.0" stroke="#eee"/>
+<text x="74" y="204.0" font-size="11" text-anchor="end" fill="#999" font-weight="normal">0.50</text>
+<line x1="80" y1="135.0" x2="700" y2="135.0" stroke="#eee"/>
+<text x="74" y="139.0" font-size="11" text-anchor="end" fill="#999" font-weight="normal">0.75</text>
+<line x1="80" y1="70.0" x2="700" y2="70.0" stroke="#eee"/>
+<text x="74" y="74.0" font-size="11" text-anchor="end" fill="#999" font-weight="normal">1.00</text>
+<text x="183.33333333333331" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">20</text>
+<text x="235.0" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">30</text>
+<text x="286.66666666666663" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">40</text>
+<text x="338.33333333333337" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">50</text>
+<text x="390.0" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">60</text>
+<text x="493.3333333333333" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">80</text>
+<text x="596.6666666666667" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">100</text>
+<text x="700.0" y="348" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">120</text>
+<text x="380.0" y="370" font-size="12" text-anchor="middle" fill="#555" font-weight="normal">存活轮数 t</text>
+<polyline points="183.3,70.0 235.0,70.0 286.7,70.0 338.3,70.0 390.0,70.0 493.3,70.0 596.7,72.2 700.0,72.2" fill="none" stroke="#e07b39" stroke-width="2.5"/>
+<circle cx="183.3" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="235.0" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="286.7" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="338.3" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="390.0" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="493.3" cy="70.0" r="3" fill="#e07b39"/>
+<circle cx="596.7" cy="72.2" r="3" fill="#e07b39"/>
+<circle cx="700.0" cy="72.2" r="3" fill="#e07b39"/>
+<polyline points="183.3,93.8 235.0,113.3 286.7,145.8 338.3,163.2 390.0,171.8 493.3,189.2 596.7,208.7 700.0,232.5" fill="none" stroke="#2f6db5" stroke-width="2.5"/>
+<circle cx="183.3" cy="93.8" r="3" fill="#2f6db5"/>
+<circle cx="235.0" cy="113.3" r="3" fill="#2f6db5"/>
+<circle cx="286.7" cy="145.8" r="3" fill="#2f6db5"/>
+<circle cx="338.3" cy="163.2" r="3" fill="#2f6db5"/>
+<circle cx="390.0" cy="171.8" r="3" fill="#2f6db5"/>
+<circle cx="493.3" cy="189.2" r="3" fill="#2f6db5"/>
+<circle cx="596.7" cy="208.7" r="3" fill="#2f6db5"/>
+<circle cx="700.0" cy="232.5" r="3" fill="#2f6db5"/>
+<polyline points="183.3,119.8 235.0,145.8 286.7,184.8 338.3,215.2 390.0,223.8 493.3,258.5 596.7,275.8 700.0,278.0" fill="none" stroke="#9bbce0" stroke-width="2.5"/>
+<circle cx="183.3" cy="119.8" r="3" fill="#9bbce0"/>
+<circle cx="235.0" cy="145.8" r="3" fill="#9bbce0"/>
+<circle cx="286.7" cy="184.8" r="3" fill="#9bbce0"/>
+<circle cx="338.3" cy="215.2" r="3" fill="#9bbce0"/>
+<circle cx="390.0" cy="223.8" r="3" fill="#9bbce0"/>
+<circle cx="493.3" cy="258.5" r="3" fill="#9bbce0"/>
+<circle cx="596.7" cy="275.8" r="3" fill="#9bbce0"/>
+<circle cx="700.0" cy="278.0" r="3" fill="#9bbce0"/>
+<rect x="92" y="66" width="14" height="6" fill="#e07b39"/>
+<text x="112" y="76" font-size="12" text-anchor="start" fill="#444" font-weight="normal">seer 先知(看真未来)</text>
+<rect x="92" y="84" width="14" height="6" fill="#2f6db5"/>
+<text x="112" y="94" font-size="12" text-anchor="start" fill="#444" font-weight="normal">strong 在线最强</text>
+<rect x="92" y="102" width="14" height="6" fill="#9bbce0"/>
+<text x="112" y="112" font-size="12" text-anchor="start" fill="#444" font-weight="normal">blind 前瞻(采样未来)</text>
+<text x="700" y="76" font-size="12" text-anchor="end" fill="#e07b39" font-weight="bold">seer 死亡 hazard ≤ 7e-05/轮</text>
+<text x="700" y="94" font-size="11" text-anchor="end" fill="#e07b39" font-weight="normal">= 杀手序列率上界</text>
+</svg>

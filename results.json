@@ -172,14 +172,5 @@
       "n": 24
     }
   },
-  "oracle": {
-    "mean": 27475.041666666668,
-    "std": 24705.38724563121,
-    "min": 1130,
-    "max": 97452,
-    "p10": 5943.5,
-    "p50": 16727.5,
-    "p90": 59469.399999999994
-  },
-  "oracle_gap_ratio": 0.7792071895553692
+  "oracle_RETRACTED": "旧 78% 缺口口径已撤回: beam-rollout seer 近乎不死→分差被存活长度主导、本质无界。新口径=固定horizon两通道, 见 channelB.json(EVPI) + survival.json(存活hazard)"
 }
