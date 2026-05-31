@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="380" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="760" height="380" fill="white"/>
+<text x="380.0" y="28" font-size="16" text-anchor="middle" fill="#111" font-weight="bold">玩家均分（对数轴）：技能地板 vs 运气缺口</text>
+<line x1="150.0" y1="60" x2="150.0" y2="320" stroke="#eee"/>
+<text x="150.0" y="338" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">1</text>
+<line x1="270.8026113543965" y1="60" x2="270.8026113543965" y2="320" stroke="#eee"/>
+<text x="270.8026113543965" y="338" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">10</text>
+<line x1="391.605222708793" y1="60" x2="391.605222708793" y2="320" stroke="#eee"/>
+<text x="391.605222708793" y="338" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">100</text>
+<line x1="512.4078340631895" y1="60" x2="512.4078340631895" y2="320" stroke="#eee"/>
+<text x="512.4078340631895" y="338" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">1000</text>
+<line x1="633.210445417586" y1="60" x2="633.210445417586" y2="320" stroke="#eee"/>
+<text x="633.210445417586" y="338" font-size="11" text-anchor="middle" fill="#999" font-weight="normal">10000</text>
+<rect x="150" y="75" width="212.4" height="30" fill="#bbb" rx="3"/>
+<text x="142" y="94.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">random (乱放)</text>
+<text x="368.3530326900528" y="94.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">57</text>
+<rect x="150" y="117" width="340.3" height="30" fill="#7aa7d8" rx="3"/>
+<text x="142" y="136.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">greedy (贪心)</text>
+<text x="496.3408985651708" y="136.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">657</text>
+<rect x="150" y="159" width="457.0" height="30" fill="#2f6db5" rx="3"/>
+<text x="142" y="178.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">strong (在线最强)</text>
+<text x="612.9870116603752" y="178.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">6066</text>
+<rect x="150" y="201" width="536.2" height="30" fill="#e07b39" rx="3"/>
+<text x="142" y="220.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">ORACLE (开未来牌)</text>
+<text x="692.2353454948601" y="220.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">27475</text>
+<text x="150" y="305" font-size="12" text-anchor="start" fill="#2f6db5" font-weight="bold">技能地板：乱放→会玩 ≈ 106×</text>
+<text x="700" y="305" font-size="12" text-anchor="end" fill="#e07b39" font-weight="bold">运气=信息缺口 ≈ 78%</text>
+</svg>

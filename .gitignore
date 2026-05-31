@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.DS_Store
+# Hub 内部记忆，不进 repo
+memory/

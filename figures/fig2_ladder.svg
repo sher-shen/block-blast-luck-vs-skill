@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="400" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="760" height="400" fill="white"/>
+<text x="380.0" y="28" font-size="16" text-anchor="middle" fill="#111" font-weight="bold">技能阶梯：均分 ± 运气波动σ，与天花板</text>
+<text x="380.0" y="48" font-size="12" text-anchor="middle" fill="#777" font-weight="normal">缺口(到天花板) > σ → 技能主导； < σ → 运气主导</text>
+<line x1="90" y1="320.0" x2="700" y2="320.0" stroke="#eee"/>
+<text x="84" y="324.0" font-size="11" text-anchor="end" fill="#999" font-weight="normal">1</text>
+<line x1="90" y1="256.28453591718477" x2="700" y2="256.28453591718477" stroke="#eee"/>
+<text x="84" y="260.28453591718477" font-size="11" text-anchor="end" fill="#999" font-weight="normal">10</text>
+<line x1="90" y1="192.5690718343696" x2="700" y2="192.5690718343696" stroke="#eee"/>
+<text x="84" y="196.5690718343696" font-size="11" text-anchor="end" fill="#999" font-weight="normal">100</text>
+<line x1="90" y1="128.85360775155434" x2="700" y2="128.85360775155434" stroke="#eee"/>
+<text x="84" y="132.85360775155434" font-size="11" text-anchor="end" fill="#999" font-weight="normal">1000</text>
+<line x1="90" y1="65.13814366873916" x2="700" y2="65.13814366873916" stroke="#eee"/>
+<text x="84" y="69.13814366873916" font-size="11" text-anchor="end" fill="#999" font-weight="normal">10000</text>
+<line x1="90" y1="77.2599535713818" x2="700" y2="77.2599535713818" stroke="#e07b39" stroke-dasharray="5,4"/>
+<text x="700" y="71.2599535713818" font-size="11" text-anchor="end" fill="#e07b39" font-weight="normal">天花板 6453</text>
+<line x1="90.0" y1="243.2" x2="90.0" y2="190.4" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="90.0" cy="205.7" r="4" fill="#2f6db5"/>
+<text x="90.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">0.0</text>
+<line x1="212.0" y1="270.7" x2="212.0" y2="168.6" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="212.0" cy="187.1" r="4" fill="#2f6db5"/>
+<text x="212.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">0.2</text>
+<line x1="334.0" y1="320.0" x2="334.0" y2="151.5" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="334.0" cy="171.0" r="4" fill="#2f6db5"/>
+<text x="334.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">0.4</text>
+<line x1="456.0" y1="320.0" x2="456.0" y2="134.3" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="456.0" cy="153.7" r="4" fill="#2f6db5"/>
+<text x="456.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">0.6</text>
+<line x1="578.0" y1="230.4" x2="578.0" y2="112.9" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="578.0" cy="131.7" r="4" fill="#2f6db5"/>
+<text x="578.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">0.8</text>
+<line x1="700.0" y1="136.0" x2="700.0" y2="59.8" stroke="#9bbce0" stroke-width="6" opacity="0.6"/>
+<circle cx="700.0" cy="77.3" r="4" fill="#c0392b"/>
+<text x="700.0" y="338" font-size="11" text-anchor="middle" fill="#777" font-weight="normal">1.0</text>
+<polyline points="90.0,205.7 212.0,187.1 334.0,171.0 456.0,153.7 578.0,131.7 700.0,77.3" fill="none" stroke="#2f6db5" stroke-width="2"/>
+<text x="380.0" y="360" font-size="12" text-anchor="middle" fill="#555" font-weight="normal">技能水平 (1-ε)</text>
+<text x="100" y="80" font-size="13" text-anchor="start" fill="#c0392b" font-weight="bold">交叉点(缺口≈σ) ≈ 3408</text>
+<text x="100" y="98" font-size="11" text-anchor="start" fill="#777" font-weight="normal">蓝=技能主导  红=运气主导</text>
+</svg>
