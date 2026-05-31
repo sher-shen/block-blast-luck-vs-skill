@@ -29,6 +29,14 @@
     "offline_opt": 16.79138702574908,
     "greedy": 3.3617104081660285
   },
+  "block_stats": {
+    "V_star_converged": 3.91573497321931,
+    "online_block_mean": 3.914823780153145,
+    "online_block_se": 0.029625468639866627,
+    "nblocks": 16,
+    "per": 1000,
+    "gap": -0.0009111930661651613
+  },
   "V_star_sensitivity": {
     "0.9": {
       "V_star_empty": 3.0212707986653013,

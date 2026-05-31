@@ -1,18 +1,19 @@
 {
+  "fixed_cohort_n": 24,
   "4": {
-    "evpi_med": 1080.0,
-    "cohort_n": 19
+    "evpi_med": 1085.0,
+    "cohort_n": 24
   },
   "8": {
-    "evpi_med": 930.0,
-    "cohort_n": 23
+    "evpi_med": 980.0,
+    "cohort_n": 24
   },
   "16": {
-    "evpi_med": 940.0,
-    "cohort_n": 28
+    "evpi_med": 1055.0,
+    "cohort_n": 24
   },
   "32": {
-    "evpi_med": 1060.0,
-    "cohort_n": 25
+    "evpi_med": 1065.0,
+    "cohort_n": 24
   }
 }

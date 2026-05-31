@@ -409,6 +409,9 @@
       120
     ]
   },
-  "seer_hazard_ub_per_round": 6.961364427427775e-05,
-  "seer_surv_at_Tmax": 0.9916666666666667
+  "seer_surv_at_Tmax": 0.9916666666666667,
+  "seer_hazard_point_per_round": 6.961364427427775e-05,
+  "seer_hazard_poisson_ub95_per_round": 0.00033023668639053255,
+  "seer_deaths": 1,
+  "seer_at_risk": 14365
 }

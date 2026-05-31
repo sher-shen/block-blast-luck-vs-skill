@@ -14,19 +14,26 @@
 <text x="102" y="158.65188241361523" font-size="11" text-anchor="end" fill="#999" font-weight="normal">2000</text>
 <line x1="110" y1="110.81485301701906" x2="720" y2="110.81485301701906" stroke="#eee"/>
 <text x="102" y="114.81485301701906" font-size="11" text-anchor="end" fill="#999" font-weight="normal">2500</text>
-<rect x="233.33333333333331" y="247.3" width="120" height="82.7" fill="#e07b39"/>
-<rect x="233.33333333333331" y="203.6" width="120" height="43.7" fill="#2f6db5"/>
-<line x1="293.3333333333333" y1="258.5" x2="293.3333333333333" y2="235.2" stroke="#7a3" stroke-width="2"/>
-<text x="293.3333333333333" y="265.3266097453823" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">EVPI 943</text>
-<text x="293.3333333333333" y="197.58699596966744" font-size="11" text-anchor="middle" fill="#2f6db5" font-weight="normal">+search 499</text>
-<text x="293.3333333333333" y="348" font-size="12" text-anchor="middle" fill="#444" font-weight="bold">T40 (n=54)</text>
-<text x="293.3333333333333" y="366" font-size="12" text-anchor="middle" fill="#e07b39" font-weight="bold">信息占比 69%</text>
-<rect x="476.66666666666663" y="204.9" width="120" height="125.1" fill="#e07b39"/>
-<rect x="476.66666666666663" y="130.0" width="120" height="74.9" fill="#2f6db5"/>
-<line x1="536.6666666666666" y1="222.9" x2="536.6666666666666" y2="184.3" stroke="#7a3" stroke-width="2"/>
-<text x="536.6666666666666" y="222.90974729241873" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">EVPI 1427</text>
-<text x="536.6666666666666" y="124.0" font-size="11" text-anchor="middle" fill="#2f6db5" font-weight="normal">+search 854</text>
-<text x="536.6666666666666" y="348" font-size="12" text-anchor="middle" fill="#444" font-weight="bold">T60 (n=34)</text>
-<text x="536.6666666666666" y="366" font-size="12" text-anchor="middle" fill="#e07b39" font-weight="bold">信息占比 57%</text>
+<rect x="172.5" y="247.3" width="120" height="82.7" fill="#e07b39"/>
+<rect x="172.5" y="203.6" width="120" height="43.7" fill="#2f6db5"/>
+<line x1="232.5" y1="258.5" x2="232.5" y2="235.2" stroke="#7a3" stroke-width="2"/>
+<text x="232.5" y="265.3266097453823" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">EVPI 943</text>
+<text x="232.5" y="197.58699596966744" font-size="11" text-anchor="middle" fill="#2f6db5" font-weight="normal">+search 499</text>
+<text x="232.5" y="348" font-size="12" text-anchor="middle" fill="#444" font-weight="bold">T40 (n=54)</text>
+<text x="232.5" y="366" font-size="12" text-anchor="middle" fill="#e07b39" font-weight="bold">信息占比 69%</text>
+<rect x="355.0" y="226.5" width="120" height="103.5" fill="#e07b39"/>
+<rect x="355.0" y="167.3" width="120" height="59.2" fill="#2f6db5"/>
+<line x1="415.0" y1="240.6" x2="415.0" y2="211.1" stroke="#7a3" stroke-width="2"/>
+<text x="415.0" y="244.52322670725417" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">EVPI 1180</text>
+<text x="415.0" y="161.3111611466811" font-size="11" text-anchor="middle" fill="#2f6db5" font-weight="normal">+search 675</text>
+<text x="415.0" y="348" font-size="12" text-anchor="middle" fill="#444" font-weight="bold">T50 (n=41)</text>
+<text x="415.0" y="366" font-size="12" text-anchor="middle" fill="#e07b39" font-weight="bold">信息占比 65%</text>
+<rect x="537.5" y="204.9" width="120" height="125.1" fill="#e07b39"/>
+<rect x="537.5" y="130.0" width="120" height="74.9" fill="#2f6db5"/>
+<line x1="597.5" y1="222.9" x2="597.5" y2="184.3" stroke="#7a3" stroke-width="2"/>
+<text x="597.5" y="222.90974729241873" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">EVPI 1427</text>
+<text x="597.5" y="124.0" font-size="11" text-anchor="middle" fill="#2f6db5" font-weight="normal">+search 854</text>
+<text x="597.5" y="348" font-size="12" text-anchor="middle" fill="#444" font-weight="bold">T60 (n=34)</text>
+<text x="597.5" y="366" font-size="12" text-anchor="middle" fill="#e07b39" font-weight="bold">信息占比 57%</text>
 <text x="380.0" y="394" font-size="12" text-anchor="middle" fill="#555" font-weight="normal">信息价值(运气)占先知得分优势的 ~57–69%；其余=前瞻搜索本身</text>
 </svg>

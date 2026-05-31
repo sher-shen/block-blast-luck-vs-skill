@@ -63,6 +63,22 @@ def _median(v):
     return pct(v, 50)
 
 
+# 单侧 95% Poisson 上界率：k 死亡 / exposure 在险轮。mu_up = 0.5*chi2_{0.95}(df=2(k+1))。
+# 无 scipy → 查表 χ²_{0.95} 常数（单侧上界用 0.95 分位，非 0.975 双侧）。审核验证 k=1 → 3.30e-4。
+_CHI2_095 = {2: 5.9915, 4: 9.4877, 6: 12.5916, 8: 15.5073, 10: 18.3070}
+
+
+def poisson_upper_95(k, exposure):
+    """k 个事件 / exposure 暴露量的单侧 95% Poisson 上界率。返回 (ub_rate, mu_up)。"""
+    df = 2 * (k + 1)
+    chi = _CHI2_095.get(df)
+    if chi is None:  # Wilson–Hilferty 近似兜底
+        z = 1.6448536269514722  # Phi^{-1}(0.95)
+        chi = df * (1 - 2.0 / (9 * df) + z * (2.0 / (9 * df)) ** 0.5) ** 3
+    mu_up = 0.5 * chi
+    return (mu_up / exposure if exposure else float("nan")), mu_up
+
+
 # ---------- 玩家：共用真实牌流，CRN 配对 ----------
 # 发现(2026-05-31)：能看真实未来的 seer + beam rollout → 近乎不死，无界horizon下分数
 # 爆炸(百万级)。故所有比较改为【固定 horizon T】(同样跑 T 轮，分数才可比、有限)，
@@ -184,13 +200,22 @@ def survival_curve(seeds, D=5, B=12, S=8, Ts=(20, 40, 60, 80, 100, 150, 200)):
     # 避免结论是某个 T 的人为产物。真最优活得≥seer → 这是 hazard 的上界。
     seer_deaths = sum(1 for r in rounds["seer"] if r < Tmax)
     seer_at_risk = sum(min(r, Tmax) for r in rounds["seer"])
-    hazard_ub = seer_deaths / seer_at_risk if seer_at_risk else float("nan")
-    print(f"  -> seer per-round death HAZARD (killer-seq rate UPPER bound) "
-          f"= {hazard_ub:.2e}/round  ({seer_deaths} deaths / {seer_at_risk} rounds)", flush=True)
+    hazard_point = seer_deaths / seer_at_risk if seer_at_risk else float("nan")
+    hazard_ci95, mu_up = poisson_upper_95(seer_deaths, seer_at_risk)
+    per_death = (1.0 / hazard_ci95) if hazard_ci95 else float("nan")
+    # 采样 CI（点估计 vs 单侧 95% 上界）与"seer≤真最优"建模界是两回事，分开陈述。
+    print(f"  -> seer per-round death hazard: POINT {hazard_point:.2e}/round "
+          f"({seer_deaths} deaths / {seer_at_risk} at-risk rounds)", flush=True)
+    print(f"     sampling 95% one-sided Poisson UPPER bound = {hazard_ci95:.2e}/round "
+          f"(≤1 death per ~{per_death:.0f} rounds)", flush=True)
+    print(f"     [separate MODELING bound] seer ≤ true-optimal → true killer-seq rate is even smaller",
+          flush=True)
     print(f"     seer survival@Tmax={curves['seer'][-1]:.2f}; 全曲线见上(结论=整条曲线,非单点)",
           flush=True)
     return {"Ts": list(Ts), "curves": curves, "rounds": rounds,
-            "seer_hazard_ub_per_round": hazard_ub,
+            "seer_hazard_point_per_round": hazard_point,
+            "seer_hazard_poisson_ub95_per_round": hazard_ci95,
+            "seer_deaths": seer_deaths, "seer_at_risk": seer_at_risk,
             "seer_surv_at_Tmax": curves["seer"][-1]}
 
 
@@ -251,13 +276,20 @@ def channel_analysis(seeds, D=5, B=12, S=8, T=100):
     em = sum(g_evpi) / len(g_evpi); pm = sum(g_proc) / len(g_proc)
     rm = sum(g_raw) / len(g_raw)
     print(f"  raw {rm:.0f} = EVPI(info) {em:.0f} + procedure(search) {pm:.0f}", flush=True)
-    # 份额：per-seed 配对中位数 (seer-blind)/(seer-strong)，仅取分母>0 的种子
+    # 份额：per-seed 配对中位数 (seer-blind)/(seer-strong)，仅取分母>0 的种子。
+    # 注：denom>0 过滤使份额**条件于 seer>strong 的种子**(会上偏)，须显式声明 + 报 n_valid/n_cohort。
     shares = [(se - bl) / (se - st) for se, bl, st in
               zip(coh("seer"), coh("blind"), coh("strong")) if se - st > 0]
-    share_med = pct(shares, 50) if shares else float("nan")
-    print(f"  EVPI/raw per-seed median share = {share_med*100:.0f}%  "
-          f"(n_valid={len(shares)}; 余下为搜索功劳/代价)", flush=True)
-    out["evpi_share_per_seed_median"] = share_med
+    if shares:
+        sm, slo, shi = bootstrap_ci(shares, _median, boot_seed="evpi-share")
+        print(f"  EVPI/raw per-seed median share = {sm*100:.0f}% "
+              f"[{slo*100:.0f},{shi*100:.0f}]  (n_valid={len(shares)}/{len(cohort)} cohort; "
+              f"**conditional on seer>strong**; 余下为搜索功劳/代价)", flush=True)
+        out["evpi_share_per_seed_median"] = sm
+        out["evpi_share_ci"] = [slo, shi]
+        out["evpi_share_n_valid"] = len(shares)
+    else:
+        out["evpi_share_per_seed_median"] = float("nan")
     # 次指标：per-round-survived rate（cohort 上等价于 /T，但留给非cohort全局视角）
     out["per_round"] = {k: sum(P[k][i] / max(R[k][i], 1) for i in range(len(seeds)))
                         / len(seeds) for k in P}
@@ -268,19 +300,26 @@ def channel_analysis(seeds, D=5, B=12, S=8, T=100):
 
 
 def s_stability(seeds, D=5, B=12, T=80, Ss=(4, 8, 16, 32)):
-    """审核2: 验证 blind 的 S 够大(EVPI 在 S 上趋平)，且对 sample-seed offset 稳。
+    """审核2/3/4: 验证 blind 的 S 够大(EVPI 在 S 上趋平)。
+    审核4 修正：旧版各 S 用各自存活 cohort(n=19/23/28/25) → 非 apples-to-apples。
+    改为**固定 cohort = 全 S 的 intersection-of-survivors**(seer 存活 ∧ ∀S blind(S) 存活)，
+    在同一组种子上比各 S 的 EVPI_med。若 fixed cohort <20，警告须升 N 或降 T。
     blind 的 RNG 用 'blind-{seed}-{move}-{s}'，改 offset 即换一组独立样本。"""
-    print(f"\n=== S-stability (EVPI=seer-blind vs S, T={T}, N={len(seeds)}) ===", flush=True)
+    print(f"\n=== S-stability (EVPI=seer-blind vs S, FIXED intersection cohort, "
+          f"T={T}, N={len(seeds)}) ===", flush=True)
     seer = {s: play_seer(s, D=D, B=B, T=T) for s in seeds}
+    blind = {S: {s: play_blind(s, D=D, B=B, S=S, T=T) for s in seeds} for S in Ss}
+    # 固定 cohort：seer 活到 T 且 每个 S 的 blind 都活到 T
+    cohort = [s for s in seeds
+              if seer[s][1] >= T and all(blind[S][s][1] >= T for S in Ss)]
+    print(f"  fixed intersection cohort = {len(cohort)}/{len(seeds)} seeds", flush=True)
+    if len(cohort) < 20:
+        print(f"  !! WARN fixed cohort={len(cohort)}<20 — raise N or lower T for reliable CIs",
+              flush=True)
     print(f"  {'S':>4} {'EVPI_med':>9} {'cohort':>7}", flush=True)
-    out = {}
+    out = {"fixed_cohort_n": len(cohort)}
     for S in Ss:
-        gaps = []
-        for s in seeds:
-            bl, rb = play_blind(s, D=D, B=B, S=S, T=T)
-            se, rse = seer[s]
-            if rb >= T and rse >= T:
-                gaps.append(se - bl)
+        gaps = [seer[s][0] - blind[S][s][0] for s in cohort]
         med = pct(gaps, 50) if gaps else float("nan")
         print(f"  {S:>4} {med:>9.0f} {len(gaps):>7}", flush=True)
         out[S] = {"evpi_med": med, "cohort_n": len(gaps)}

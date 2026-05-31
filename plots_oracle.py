@@ -53,9 +53,11 @@ def fig3():
         s.append(f'<rect x="{x0+12}" y="{yy-10}" width="14" height="6" fill="{cols[k][0]}"/>')
         s.append(text(x0 + 32, yy, cols[k][1], 12, "start", "#444"))
         yy += 18
-    hz = SV["seer_hazard_ub_per_round"]
-    s.append(text(x1, y0 + 6, f"seer 死亡 hazard ≤ {hz:.0e}/轮", 12, "end", "#e07b39", "bold"))
-    s.append(text(x1, y0 + 24, "= 杀手序列率上界", 11, "end", "#e07b39"))
+    hz = SV.get("seer_hazard_point_per_round", SV.get("seer_hazard_ub_per_round"))
+    ub = SV.get("seer_hazard_poisson_ub95_per_round")
+    s.append(text(x1, y0 + 6, f"seer 死亡 hazard ≈ {hz:.0e}/轮", 12, "end", "#e07b39", "bold"))
+    if ub:
+        s.append(text(x1, y0 + 24, f"(95% 上界 {ub:.0e}/轮)", 11, "end", "#e07b39"))
     s.append('</svg>')
     open("figures/fig3_survival.svg", "w").write("\n".join(s))
 

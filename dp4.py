@@ -6,7 +6,7 @@
 这是**类比**，不是 8×8 数字的标定。三处简化（README 头部声明）：
   ① 每回合发 1 块（非 3 块手牌）→ MDP 状态=棋盘(2^16)；
   ② 线性计分=消除行列数，无 combo/all-clear（combo 会进状态、爆炸）；
-  ③ γ-折扣(γ=0.99)：否则 monomino 永远放得下→无界存活→V* 发散(审核2 抓出)。
+  ③ γ-折扣(主结果 γ=0.95)：否则 monomino 永远放得下→无界存活→V* 发散(审核2 抓出)。
 故度量是**discounted VOI**，且不建模 8×8 的 combo 运气 / 3 块重排技巧。
 
 折扣约定（审核3 锁定）：从空盘第 t 步(0-indexed)的即时奖励权重 γ^t，
@@ -234,6 +234,52 @@ def offline_optimal(seq, gamma, L):
     return best_ret
 
 
+def run_blocks(nblocks=16, per=1000, gamma=0.95):
+    """审核2/4: 单窗 3·SE assert 会被运气骗(审核2 证伪"系统偏差")。改报 block-mean±block-SE
+    over nblocks×per 种子，给 mean(online) vs 收敛 V* 的稳健估计。"""
+    Vc, sw, nR = value_iteration(gamma=gamma, tol=1e-5)  # 收敛 V*(tol≤1e-5)
+    Vstar = Vc[0]
+    L = horizon_for(gamma)
+    blk_means = []
+    for bi in range(nblocks):
+        on = []
+        for s in range(bi * per, (bi + 1) * per):
+            rng = random.Random(f"dp4-{s}")
+            seq = [rng.randrange(K) for _ in range(L)]
+            on.append(play_online(Vc, seq, gamma, L))
+        blk_means.append(sum(on) / per)
+    gm = sum(blk_means) / nblocks
+    bse = (sum((x - gm) ** 2 for x in blk_means) / nblocks / nblocks) ** 0.5
+    print(f"  V*(empty,tol1e-5)={Vstar:.4f}  online block-mean={gm:.4f}±{bse:.4f} (SE) "
+          f"over {nblocks}×{per}={nblocks*per} seeds  gap={gm-Vstar:+.4f}", flush=True)
+    return {"V_star_converged": Vstar, "online_block_mean": gm, "online_block_se": bse,
+            "nblocks": nblocks, "per": per, "gap": gm - Vstar}
+
+
+def backward_dp_T(T):
+    """无折扣有限-horizon 后向归纳真值(审核3/4: mode-T RL head 的认证靶)。
+    V_k[b] = mean_p max(0, max_pos(cl + V_{k-1}[b']))，V_0≡0，迭代 T 次。
+    放不下→该 piece 贡献 0 continuation(=value_iteration best=0.0 / play_online break 约定一致)。
+    /K 为均匀抽牌期望。返回 (V_T[0], V_T dict)。复用 reachable/legal_moves。"""
+    R = reachable_boards()
+    moves = {b: [legal_moves(b, p) for p in range(K)] for b in R}
+    V = {b: 0.0 for b in R}
+    for _ in range(T):
+        nV = {}
+        for b in R:
+            tot = 0.0; mb = moves[b]
+            for p in range(K):
+                best = 0.0
+                for (nb, cl) in mb[p]:
+                    v = cl + V[nb]
+                    if v > best:
+                        best = v
+                tot += best
+            nV[b] = tot / K
+        V = nV
+    return V[0], V
+
+
 if __name__ == "__main__":
     import sys, json
     M = int(sys.argv[1]) if len(sys.argv) > 1 else 200
@@ -241,6 +287,8 @@ if __name__ == "__main__":
     # 主结果 γ=0.95；并报 V* 在 γ∈{0.9,0.95,0.99} 的敏感性(VI 便宜)
     res = run(M=M, gamma=0.95)
     print(json.dumps(res, ensure_ascii=False, indent=2), flush=True)
+    print("\n=== block-mean±block-SE (审核4: 稳健替代单窗 3·SE assert) ===", flush=True)
+    res["block_stats"] = run_blocks(nblocks=16, per=1000, gamma=0.95)
     sens = {}
     for g in (0.90, 0.95, 0.99):
         V, sw, nR = value_iteration(gamma=g)
