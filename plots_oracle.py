@@ -101,5 +101,46 @@ def fig4():
     open("figures/fig4_evpi.svg", "w").write("\n".join(s))
 
 
-fig3(); fig4()
-print("写出 figures/fig3_survival.svg, figures/fig4_evpi.svg")
+# ---------- fig5: 4×4 精确 DP 锚点 ----------
+def fig5():
+    import os.path
+    if not os.path.exists("dp4.json"):
+        return
+    D = json.load(open("dp4.json"))
+    W, H = 760, 380
+    s = svg_open(W, H)
+    x0, x1, y0, y1 = 90, 700, 80, 300
+    m = D["means"]
+    bars = [("greedy 近视", m["greedy"], "#9bbce0"),
+            ("online 最优 V*", D["V_star_empty"], "#2f6db5"),
+            ("offline 上帝视角", m["offline_opt"], "#e07b39")]
+    hi = max(b[1] for b in bars) * 1.18
+    def X(v): return x0 + v / hi * (x1 - x0)
+    s.append(text(W/2, 28, "4×4 精确 DP 锚点（可解类比；γ=0.95，1块/回合，线性计分）",
+                  15, "middle", "#111", "bold"))
+    s.append(text(W/2, 48, "唯一能算真·最优的棋盘：近视启发式离最优多远 + 精确信息价值",
+                  12, "middle", "#777"))
+    y = 70; bh = 54
+    for (nm, val, col) in bars:
+        s.append(f'<rect x="{x0}" y="{y}" width="{X(val)-x0:.1f}" height="{bh-16}" fill="{col}" rx="3"/>')
+        s.append(text(x0 - 8, y + (bh-16)/2 + 2, nm, 13, "end", "#333"))
+        s.append(text(X(val) + 6, y + (bh-16)/2 + 2, f"{val:.2f}", 12, "start", "#333", "bold"))
+        y += bh
+    voi = D["discounted_VOI"]; hg = D["heuristic_gap"]
+    ratio = m["online_opt"] / m["offline_opt"] * 100
+    s.append(text(x0, y + 6,
+                  f"① 近视贪心 ≈ {D['greedy_optimality_ratio']*100:.0f}% 最优（缺口 {hg['mean']:.1f} "
+                  f"[{hg['ci'][0]:.1f},{hg['ci'][1]:.1f}]）→ 启发式在线已近最优",
+                  12, "start", "#2f6db5", "bold"))
+    s.append(text(x0, y + 28,
+                  f"② online 最优只兑现上帝视角的 {ratio:.0f}%；discounted VOI = "
+                  f"{voi['mean']:.1f} [{voi['ci'][0]:.1f},{voi['ci'][1]:.1f}] → 信息价值主导",
+                  12, "start", "#e07b39", "bold"))
+    s.append(text(x0, y + 50, "（类比，非 8×8 标定；不建模 combo 运气 / 3块重排）",
+                  11, "start", "#999"))
+    s.append('</svg>')
+    open("figures/fig5_dp4.svg", "w").write("\n".join(s))
+
+
+fig3(); fig4(); fig5()
+print("写出 figures/fig3_survival.svg, fig4_evpi.svg, fig5_dp4.svg")

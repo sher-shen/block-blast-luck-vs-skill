@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="380" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="760" height="380" fill="white"/>
+<text x="380.0" y="28" font-size="15" text-anchor="middle" fill="#111" font-weight="bold">4×4 精确 DP 锚点（可解类比；γ=0.95，1块/回合，线性计分）</text>
+<text x="380.0" y="48" font-size="12" text-anchor="middle" fill="#777" font-weight="normal">唯一能算真·最优的棋盘：近视启发式离最优多远 + 精确信息价值</text>
+<rect x="90" y="70" width="103.5" height="38" fill="#9bbce0" rx="3"/>
+<text x="82" y="91.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">greedy 近视</text>
+<text x="199.49552088397394" y="91.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">3.36</text>
+<rect x="90" y="124" width="120.5" height="38" fill="#2f6db5" rx="3"/>
+<text x="82" y="145.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">online 最优 V*</text>
+<text x="216.48799273165173" y="145.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">3.91</text>
+<rect x="90" y="178" width="516.9" height="38" fill="#e07b39" rx="3"/>
+<text x="82" y="199.0" font-size="13" text-anchor="end" fill="#333" font-weight="normal">offline 上帝视角</text>
+<text x="612.9491525423729" y="199.0" font-size="12" text-anchor="start" fill="#333" font-weight="bold">16.79</text>
+<text x="90" y="238" font-size="12" text-anchor="start" fill="#2f6db5" font-weight="bold">① 近视贪心 ≈ 86% 最优（缺口 0.8 [0.4,1.3]）→ 启发式在线已近最优</text>
+<text x="90" y="260" font-size="12" text-anchor="start" fill="#e07b39" font-weight="bold">② online 最优只兑现上帝视角的 25%；discounted VOI = 12.6 [12.0,13.3] → 信息价值主导</text>
+<text x="90" y="282" font-size="11" text-anchor="start" fill="#999" font-weight="normal">（类比，非 8×8 标定；不建模 combo 运气 / 3块重排）</text>
+</svg>

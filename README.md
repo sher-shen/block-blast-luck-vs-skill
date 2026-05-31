@@ -106,6 +106,22 @@
   - 即先知相对最强在线玩家的得分优势里，**~57–69% 是纯粹"知道未来"的价值（运气）**，其余是前瞻搜索
     本身的功劳。该比例随采样数 S∈{4..32} 与前瞻深度 D（D≥3 即饱和）**稳定**。
 
+**⑤ 4×4 精确 DP 锚点（可解类比，经三轮审核）。**
+
+![dp4](figures/fig5_dp4.svg)
+
+8×8 无法精确求解，但 **4×4 可以**——于是拿到 8×8 拿不到的两样东西（`dp4.py`，M=200 序列，γ=0.95）：
+
+- **近视启发式已近在线最优**：贪心达到真·最优(value iteration `V*`)的 **≈86%**（缺口 0.82 [0.37,1.27] 折扣分）
+  → 印证"用 beam-strong 当 8×8 在线基线"是合理的。
+- **信息价值主导**：即便是**可证明最优**的在线策略，也只兑现"上帝视角(离线 DP)"的 **≈25%**；
+  **discounted VOI = 12.6 [12.0,13.3]**（≈在线最优的 3 倍）→ 在一个可精确求解、无 combo 的小棋盘上，
+  **"知道未来"仍是压倒性的价值** —— 独立佐证了 8×8 的"信息=运气天花板"主线。
+
+> 这是**类比不是标定**：1 块/回合（非 3 块手牌）、线性计分（无 combo/all-clear）、γ=0.95 折扣。
+> 故它**不**复现 8×8 的 57–69%，也**不**建模 combo 运气或 3 块重排技巧——它只独立确认两件事：
+> 启发式在线近最优、信息价值巨大。正确性由 `mean(online)=V*(empty)` 硬断言（M=200 通过）保证。
+
 **总结**：Block Blast 是**"技能定地板、运气定天花板"**的游戏，但天花板的"运气"有两副面孔——
 **存活几乎全靠技能**（完美前瞻下近乎不死，真运气只剩罕见杀手序列），而**给定存活、想多刷分则约六成靠
 牌运**（EVPI 占先知优势 57–69%）。中低水平拼策略（地板 **113×**），顶端在"刷分"维度拼牌运。它与五子棋
@@ -124,8 +140,9 @@
 - **存活 hazard 是上界**：真最优活得 ≥ 我们的 seer，故 7×10⁻⁵/轮 是杀手序列率的**上界**（真值更小）。
 - **结论依赖计分模型**：line_base/combo/all-clear 数值与**均匀等概率**发牌是建模假设；先知正是靠
   combo 复利刷分，真实游戏若用**自适应 RNG**（按棋盘坑你）会改变比例。计分敏感性分析为后续工作。
+- **4×4 DP 是类比非标定**（见 §⑤）：1 块/回合 + 线性计分 + γ 折扣，三处偏离真实 8×8；它独立确认
+  "启发式在线近最优"与"信息价值巨大"，但不复现 8×8 的具体百分比，也不建模 combo 运气。
 - 真正逼近"在线天花板"需**学习型价值函数（RL/DQN）**；本项目止步于"搜索已收敛 + 信息价值已量化"，未训练 RL。
-- **4×4 精确 DP** 基准（量化启发式离真最优多远）作为可解类比，列为后续。
 
 ---
 
@@ -146,7 +163,8 @@ python3 oracle_analysis.py sweep 24 80      # D-sweep: 定前瞻深度 D(存活/
 python3 oracle_analysis.py sstab 40 3 40    # EVPI 随采样数 S 是否趋平
 python3 oracle_analysis.py survival 120 3   # 通道A 存活曲线 -> survival.json
 python3 oracle_analysis.py channel 120 3 40,60  # 通道B EVPI 分解 -> channelB.json
-python3 plots_oracle.py      # survival/channelB.json -> figures/fig3,fig4
+python3 dp4.py 200           # 4×4 精确 DP 锚点 -> dp4.json
+python3 plots_oracle.py      # survival/channelB/dp4.json -> figures/fig3,fig4,fig5
 ```
 
 ## 文件
@@ -161,8 +179,9 @@ python3 plots_oracle.py      # survival/channelB.json -> figures/fig3,fig4
 | `compare.py` | 配对头对头（CRN，验证 rollout 回归） |
 | `experiments.py` | 方差/阶梯/收敛 -> `results.json` |
 | **`oracle_analysis.py`** | **运气两通道（创新主线）：seer/blind/anti 玩家 + 固定 horizon + 存活曲线 + EVPI 分解 + bootstrap CI** |
+| **`dp4.py`** | **4×4 精确 DP 锚点：value iteration 真·最优 + 离线 DP + 贪心，discounted VOI + 启发式缺口** |
 | `plots.py` | 零依赖 SVG（fig1 玩家 / fig2 阶梯） |
-| `plots_oracle.py` | 零依赖 SVG（fig3 存活 / fig4 EVPI 分解） |
+| `plots_oracle.py` | 零依赖 SVG（fig3 存活 / fig4 EVPI / fig5 4×4 锚点） |
 
 ## License
 MIT
