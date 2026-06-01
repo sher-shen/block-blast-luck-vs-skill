@@ -1,0 +1,91 @@
+{
+  "gamma_gate": {
+    "value_pass": true,
+    "policy_pass": true,
+    "v_net_empty": 3.914362668991089,
+    "v_star_empty": 3.9157,
+    "abs_delta": 0.0013373310089113133,
+    "policy_ratio_point": 1.0049841659042356,
+    "policy_ci": [
+      0.9965426879727869,
+      1.0134780216881465
+    ],
+    "policy_ratio_vs_vstar": 0.9976530969463941,
+    "M": 20000,
+    "L": 234
+  },
+  "gamma_train": {
+    "v_empty": 3.914362668991089,
+    "sweeps": 310,
+    "wall_s": 214.1501009464264,
+    "warm_used": false,
+    "plateau": true,
+    "wall_budget_exceeded": false
+  },
+  "gamma_pass": true,
+  "displacement": {
+    "disp_pass": true,
+    "disp_v_unit": 0.7374237775802612,
+    "tau_disp": 0.2160921514034271,
+    "rms_star_init": 0.7203071713447571,
+    "corr_heuristic": 0.8707329630851746,
+    "corr_user_gate_flag": false
+  },
+  "T_gate": {
+    "T8": {
+      "v_net": 3.5139334201812744,
+      "target": 3.5934,
+      "value_rel": 0.022114593370825823,
+      "value_pass": true,
+      "online_mean": 3.53574,
+      "online_block_se": 0.007527720438486019,
+      "online_rel": 0.01604608448822837,
+      "online_pass": true,
+      "guard_pass": true
+    },
+    "T16": {
+      "v_net": 5.055184841156006,
+      "target": 4.8637,
+      "value_rel": 0.039370199879928076,
+      "value_pass": true,
+      "online_mean": 4.7907399999999996,
+      "online_block_se": 0.00760954499296773,
+      "online_rel": 0.015000925221539186,
+      "online_pass": true,
+      "guard_pass": true
+    },
+    "value_pass": true,
+    "online_pass": true
+  },
+  "T_train": {
+    "v8": 3.5139334201812744,
+    "v16": 5.055184841156006,
+    "sweeps": 102,
+    "wall_s": 637.354798078537,
+    "warm_used": true,
+    "plateau": true,
+    "wall_budget_exceeded": false
+  },
+  "T_pass": true,
+  "summary": {
+    "gamma_gate_pass": true,
+    "T_gate_pass": true,
+    "both_gates_pass": true,
+    "displacement_binding_pass": true,
+    "displacement_corr_advisory_flag": false,
+    "certifies_4x4_afterstate_FVI_pipeline": true,
+    "net_hidden": {
+      "gamma": 256,
+      "T": 128
+    },
+    "notes": "γ@256 needed for tight 0.05 abs value gate (kills max-overestimation bias); T@128 sufficient for loose 5% rel gate and ~2.5x faster/sweep (converged 102 sweeps/637s).",
+    "does_NOT_certify": "8x8 beam_hand 3-tile-hand candidate enumeration x afterstate ensemble; 4x4 is single-tile/round, linear scoring (no combo). 8x8 layer relies on 8x8 competence gate.",
+    "truths": {
+      "V_star_empty": 3.9157,
+      "bdp_T_8": 3.5934,
+      "bdp_T_16": 4.8637,
+      "myopic_greedy_ratio": 0.859,
+      "corr_heuristic4_Vstar": 0.87
+    }
+  }
+}

@@ -171,7 +171,36 @@ python3 oracle_analysis.py survival 120 3   # 通道A 存活曲线 -> survival.j
 python3 oracle_analysis.py channel 120 3 40,50,60  # 通道B EVPI 分解(含份额CI) -> channelB.json
 python3 dp4.py 200           # 4×4 精确 DP 锚点 -> dp4.json
 python3 plots_oracle.py      # survival/channelB/dp4.json -> figures/fig3,fig4,fig5
+
+# 4×4 afterstate-FVI 双 gate 认证（唯一依赖 torch 的文件；分析管线保持零依赖）
+python3 -m venv .venv && .venv/bin/pip install torch
+.venv/bin/python rl4.py all  # mode-γ + mode-T 训练 + 双 gate -> rl4_gate.json
 ```
+
+## 方向① 学习型值函数 — 4×4 afterstate-FVI 双 gate 认证（在线天花板的第三个独立估计，第一步）
+
+EVPI 信息占比 57–69% 载重于"strong(beam,无前瞻)=真在线天花板"这一假设。方向① 用一个
+**与搜索正交的学习型值函数**独立再测一次。烧 8×8 算力前，先在有精确 DP 真值的 **4×4**
+上证明 afterstate 拟合值迭代(FVI) pipeline 可信——否则 8×8 打不过 beam-strong 时分不清
+"到天花板了"还是"网没训好"（弱 agent 陷阱）。`rl4.py` 训两个 head（MLP afterstate 值网络）：
+
+| gate | 判据（预注册） | 真值 | 结果 |
+|---|---|---|---|
+| **γ-gate 值** | \|V_net(empty) − 3.9157\| < 0.05 | value_iteration(γ=0.95)=3.9157 | **PASS** Δ=0.0013 |
+| **γ-gate 策略** | greedy-on-V_net 最优比 paired-CRN bootstrap 95% CI 下界 ≥ 0.92 | 近视贪心 0.859 | **PASS** ratio 1.005, CI[0.997,1.013] |
+| **T-gate 值** | T∈{8,16} \|V_net(empty,T) − bdp_T(T)\|/bdp_T(T) < 5% | bdp_T(8)=3.5934, (16)=4.8637 | **PASS** 2.2% / 3.9% |
+| **T-gate 在线** | M=50k 无折扣 T-rollout 相对偏差 < 5% + 精度护栏 2·SE < 2.5%·bdp_T | bdp_T(T) | **PASS** 1.6% / 1.5%, 护栏过 |
+| **位移检查** | 探针集 V 变化 > τ_disp（V-单位, binding）；corr(V_net,heuristic4)<0.92（advisory） | corr(heuristic4,V\*)=0.870 | **PASS** disp 0.74>0.22; corr 0.871 |
+
+**双 gate 皆 PASS ⇒ 认证 4×4 afterstate-FVI pipeline**（值网络 + FVI 循环 + γ/无折扣-T 两种
+backup + 真值复现 + 位移检查）。结果见 `rl4_gate.json`。
+
+**不认证项（务必声明）**：4×4 是**单块/回合 + 线性计分（无 combo）**。双 gate **不**认证 8×8 的
+beam_hand 三块手牌候选枚举 × afterstate 集成 —— 那层靠将来的 8×8 competence gate（vs beam-strong
+paired-CRN + 预注册效应量）兜底。本认证只说"FVI 机器在可精确求解的小盘上能复现真·最优 + 真·有限-T 值"。
+
+工程要点：mode-γ 用 hidden=256（紧的 0.05 绝对值 gate 需压住 max-算子的高估偏置——小网会高估
+~4%）；mode-T 用 hidden=128（5% 相对 gate 较松，且每 sweep 快 ~2.5×，102 sweep / 637s 收敛）。
 
 ## 文件
 
@@ -185,7 +214,8 @@ python3 plots_oracle.py      # survival/channelB/dp4.json -> figures/fig3,fig4,f
 | `compare.py` | 配对头对头（CRN，验证 rollout 回归） |
 | `experiments.py` | 方差/阶梯/收敛 -> `results.json` |
 | **`oracle_analysis.py`** | **运气两通道（创新主线）：seer/blind/anti 玩家 + 固定 horizon + 存活曲线 + EVPI 分解 + bootstrap CI** |
-| **`dp4.py`** | **4×4 精确 DP 锚点：value iteration 真·最优 + 离线 DP + 贪心，discounted VOI + 启发式缺口** |
+| **`dp4.py`** | **4×4 精确 DP 锚点：value iteration 真·最优 + 离线 DP + 贪心，discounted VOI + 启发式缺口 + backward_dp_T 无折扣有限-T 真值** |
+| **`rl4.py`** | **方向① 4×4 afterstate-FVI 双 gate 认证（torch）：mode-γ/mode-T 值网络 + FVI + 无折扣 T-rollout + 位移检查 -> `rl4_gate.json`** |
 | `plots.py` | 零依赖 SVG（fig1 玩家 / fig2 阶梯） |
 | `plots_oracle.py` | 零依赖 SVG（fig3 存活 / fig4 EVPI / fig5 4×4 锚点） |
 
