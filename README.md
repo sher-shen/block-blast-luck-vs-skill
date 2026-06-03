@@ -17,8 +17,19 @@
 而 skill-vs-luck 的学术文献（[Skill vs Chance, arXiv:2410.14363](https://arxiv.org/pdf/2410.14363)、
 [Geometry of Games, arXiv:2511.11611](https://arxiv.org/pdf/2511.11611)）几乎全是**多人**博弈与评分系统。
 
-**空白点**：没人把 Block Blast 当成"**运气–技能定量分解**"问题来做，更没人对**单人随机生存型游戏**
-用**信息价值**去定义运气。本项目就填这个缝。理论锚点来自一句老话——
+最接近的三条对标，机制上仍各有别（故不构成抢先）：
+- **[Skill or Luck? Return Decomposition via Advantage Functions, arXiv:2402.12874](https://arxiv.org/abs/2402.12874)**：
+  用 advantage 函数把单智能体回报拆成 skill/luck。但它在**策略–价值的 advantage 机制层**分解单条轨迹的回报，
+  我们是在**信息层**（EVPI = seer−blind）+ **存活层**双通道操作化运气，并用精确 DP 锚定天花板——机制不同。
+- **[Gehnen & Venier, "Tetris Is Not Competitive", FUN 2024](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FUN.2024.16)**：
+  通道 A（存活运气=不可约杀手序列）的更贴学术支柱，比 [Burgiel](https://www.semanticscholar.org/paper/How-to-lose-at-Tetris-Burgiel/11c12871bfa138fa8bb93a4e5dbcca36c5d214fa)
+  更直接刻画"单人 block-puzzle 无必胜/无限生存策略"。
+- **[Difficulty estimation via RL agents, arXiv:2306.14626](https://arxiv.org/abs/2306.14626)**：
+  用 RL agent 的表现作**人类关卡难度/完成率的代理**——是"以 agent 表现作难度/完成率代理"的先例（与本仓 ②b DDA 方向相关），
+  **不**是 ②a 强策略天花板的先例，勿当后者引用。
+
+**空白点**：没人把 Block Blast 当成"**运气–技能定量分解**"问题来做。据我们所知，本项目**首次将 EVPI/survival
+双通道分解用于单人随机生存型 block-puzzle，并用精确 DP 锚定信息价值天花板**。理论锚点来自一句老话——
 [*"luck is nothing more than a lack of information"* (Aleph Insights)](https://alephinsights.com/blog/2016/05/skill-and-luck/)——
 我们把它**操作化、算出来**。
 

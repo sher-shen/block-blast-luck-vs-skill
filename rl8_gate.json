@@ -1,0 +1,50 @@
+{
+  "migration_gate": {
+    "T8": {
+      "v_total": 3.5560317039489746,
+      "target": 3.5934,
+      "rel": 0.010399147339852317,
+      "pass": true
+    },
+    "T16": {
+      "v_total": 4.730551719665527,
+      "target": 4.8637,
+      "rel": 0.027375923748272375,
+      "pass": true
+    },
+    "pass": true,
+    "train": {
+      "v8": 3.5560317039489746,
+      "v16": 4.730551719665527,
+      "buf_size": 41503,
+      "sweeps": 250,
+      "wall_s": 4586.577450037003,
+      "plateau": false,
+      "wall_budget_exceeded": false
+    }
+  },
+  "migration_gate_lograte": {
+    "T8": {
+      "v_total": 3.471363067626953,
+      "target": 3.5934,
+      "rel": 0.03396141046725853,
+      "pass": true
+    },
+    "T16": {
+      "v_total": 4.31585693359375,
+      "target": 4.8637,
+      "rel": 0.11263915669269275,
+      "pass": false
+    },
+    "pass": false,
+    "train": {
+      "v8": 3.471363067626953,
+      "v16": 4.31585693359375,
+      "buf_size": 41503,
+      "sweeps": 250,
+      "wall_s": 4424.643256187439,
+      "plateau": false,
+      "wall_budget_exceeded": false
+    }
+  }
+}

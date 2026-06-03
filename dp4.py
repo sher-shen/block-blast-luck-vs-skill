@@ -101,7 +101,7 @@ def reachable_boards():
     return seen
 
 
-def value_iteration(gamma=0.99, tol=1e-3, max_sweeps=6000):
+def value_iteration(gamma=0.95, tol=1e-3, max_sweeps=6000):
     """γ-折扣无限期 VI，仅在可达棋盘上：V[b]=mean_p[ max_pos(cleared+γV[b']) ; 0 ]。
     γ-收缩 → 唯一有限 V*，单调收敛。返回 (V dict, sweeps, |reachable|)。"""
     R = reachable_boards()
@@ -188,11 +188,10 @@ def run(M=200, gamma=0.95, seed0=0):
     voi = [o - n for o, n in zip(off, on)]       # discounted 信息价值
     hgap = [n - g for n, g in zip(on, gr)]        # 最优 − 近视贪心
     mean_on = sum(on) / M
-    se_on = (sum((x - mean_on) ** 2 for x in on) / M / M) ** 0.5
+    # 单窗 3·SE assert 被运气骗(审核2 证伪"系统偏差")→ 单窗噪声字段不入输出；
+    # online vs 收敛 V* 的稳健比较走 run_blocks(tol=1e-5 + 16×1000 block-SE)，见 block_stats。
     out = {"gamma": gamma, "L": L, "M": M, "sweeps": sw, "reachable": nR,
-           "V_star_empty": V[0], "mean_online": mean_on,
-           "assert_online_eq_Vstar": abs(mean_on - V[0]) < 3 * se_on + 1e-6,
-           "online_se": se_on}
+           "V_star_empty": V[0], "mean_online": mean_on}
     vm, vlo, vhi = bootstrap_ci(voi, boot_seed="dp4-voi")
     vmm = pct(voi, 50)
     hm, hlo, hhi = bootstrap_ci(hgap, boot_seed="dp4-hgap")

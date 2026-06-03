@@ -28,7 +28,7 @@
 
 ### A3. dp4.py 收敛 V* + 一致性
 - docstring 第9行 "γ-折扣(γ=0.99)" → 改 "γ=0.95"（与 run 一致）。
-- gate 用 `value_iteration(gamma=0.95, tol=1e-5)` 打印收敛 V*(empty)≈3.9158；保留现有 γ 敏感性。
+- gate 用 `value_iteration(gamma=0.95, tol=1e-5)` 打印收敛 V*(empty)≈3.9157；保留现有 γ 敏感性。
 - assert/报告：跑 **≥16k 种子**或报 **block-mean ± block-SE**（16 块×1000），不用单窗 3·SE
   （审核2 证伪了"系统偏差"：32k 种子缺口 −0.0096，单窗会被运气骗）。新增 `run_blocks(nblocks=16, per=1000)`。
 
@@ -51,13 +51,13 @@
   （8×8 才启用，见 rl_plan F1），并在 4×4 验证"transform=identity 时 == 不变"。
 
 ### B2. 两个真值 DP（纯 Python，新增于 dp4.py）
-- **mode-γ 真值**：已有 `value_iteration(γ=0.95)` → V*(empty)=3.9158。
+- **mode-γ 真值**：已有 `value_iteration(γ=0.95)` → V*(empty)=3.9157。
 - **mode-T 真值（新增 ~20 行）**：`backward_dp_T(T, reachable, moves)`：
   `Vk[b] = mean_p max(0, max_pos(cl + V_{k-1}[b']))`，V_0≡0，迭代 T 次（无折扣有限 horizon 后向归纳）。
   返回 `V_T[0]` = 从空盘 T 回合无折扣最优期望分。**这是 mode-T RL head 的认证靶**。
 
 ### B3. 双 gate 判据（预注册，两者皆过才认证 8×8 pipeline）
-- **γ-gate**：|V_net(empty) − 3.9158| < ε_v(如 0.05)；且 greedy-on-V_net 最优比 ≥ 0.95（优于近视贪心 0.86）。
+- **γ-gate**：|V_net(empty) − 3.9157| < ε_v(如 0.05)；且 greedy-on-V_net 最优比 ≥ 0.95（优于近视贪心 0.86）。
 - **T-gate**：对 T∈{8,16}，|V_net(empty,T) − backward_dp_T(T)| / backward_dp_T(T) < 5%；
   且 V_net 诱导策略的在线无折扣均分 ≈ backward_dp_T(T)（paired CRN，effect size 预注册）。
 - **位移检查**（rl_plan F2）：训练后 corr(V_net, heuristic4) 须显著 < 1（证明 V 离开了 init 盆地）。
