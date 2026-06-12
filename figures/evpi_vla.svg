@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="540" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="920" height="540" fill="white"/>
+<text x="460.0" y="26" font-size="17" text-anchor="middle" font-weight="bold">verdict(i): 换在线天花板 strong→vla(2924) → 运气(信息价值)占比抬升</text>
+<text x="460.0" y="46" font-size="11" text-anchor="middle" fill="#555">N=120 · D_oracle=3 · vla=2/30/12 · 冻结 intersection-of-survivors cohort · per-seed 配对中位数 + bootstrap 95% CI</text>
+<text x="60" y="72" font-weight="bold">① 运气占比 EVPI/raw（cohort4 同种子）</text>
+<line x1="60" y1="460.0" x2="440" y2="460.0" stroke="#eee"/>
+<text x="54" y="464.0" text-anchor="end" font-size="11">0%</text>
+<line x1="60" y1="394.48275862068965" x2="440" y2="394.48275862068965" stroke="#eee"/>
+<text x="54" y="398.48275862068965" text-anchor="end" font-size="11">25%</text>
+<line x1="60" y1="328.9655172413793" x2="440" y2="328.9655172413793" stroke="#eee"/>
+<text x="54" y="332.9655172413793" text-anchor="end" font-size="11">50%</text>
+<line x1="60" y1="263.44827586206895" x2="440" y2="263.44827586206895" stroke="#eee"/>
+<text x="54" y="267.44827586206895" text-anchor="end" font-size="11">75%</text>
+<line x1="60" y1="197.9310344827586" x2="440" y2="197.9310344827586" stroke="#eee"/>
+<text x="54" y="201.9310344827586" text-anchor="end" font-size="11">100%</text>
+<line x1="60" y1="132.41379310344826" x2="440" y2="132.41379310344826" stroke="#eee"/>
+<text x="54" y="136.41379310344826" text-anchor="end" font-size="11">125%</text>
+<line x1="60" y1="197.9310344827586" x2="440" y2="197.9310344827586" stroke="#d33" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="440" y="193.9310344827586" text-anchor="end" font-size="10" fill="#d33">100%=残差全是信息价值</text>
+<rect x="81.33333333333334" y="289.9071618037135" width="38" height="170.0928381962865" fill="#9bb7d4"/>
+<text x="100.33333333333334" y="285.9071618037135" text-anchor="middle" font-size="11" fill="#36506b">65%</text>
+<rect x="127.33333333333334" y="174.41202475685236" width="38" height="285.58797524314764" fill="#e1843a"/>
+<text x="146.33333333333334" y="170.41202475685236" text-anchor="middle" font-size="11" fill="#a85515" font-weight="bold">109%</text>
+<line x1="146.33333333333334" y1="201.47250698974835" x2="146.33333333333334" y2="128.04597701149427" stroke="#a85515" stroke-width="1.5"/>
+<text x="123.33333333333334" y="478" text-anchor="middle">T=40</text>
+<text x="123.33333333333334" y="494" text-anchor="middle" font-size="10" fill="#888">n=39</text>
+<rect x="208.00000000000003" y="294.3659755996097" width="38" height="165.63402440039027" fill="#9bb7d4"/>
+<text x="227.00000000000003" y="290.3659755996097" text-anchor="middle" font-size="11" fill="#36506b">63%</text>
+<rect x="254.00000000000003" y="181.2013645583625" width="38" height="278.7986354416375" fill="#e1843a"/>
+<text x="273.0" y="177.2013645583625" text-anchor="middle" font-size="11" fill="#a85515" font-weight="bold">106%</text>
+<line x1="273.0" y1="230.9029081978508" x2="273.0" y2="100.65762200866772" stroke="#a85515" stroke-width="1.5"/>
+<text x="250.00000000000003" y="478" text-anchor="middle">T=50</text>
+<text x="250.00000000000003" y="494" text-anchor="middle" font-size="10" fill="#888">n=26</text>
+<rect x="334.6666666666667" y="314.36017871462934" width="38" height="145.63982128537066" fill="#9bb7d4"/>
+<text x="353.6666666666667" y="310.36017871462934" text-anchor="middle" font-size="11" fill="#36506b">56%</text>
+<rect x="380.6666666666667" y="208.45084920226455" width="38" height="251.54915079773545" fill="#e1843a"/>
+<text x="399.6666666666667" y="204.45084920226455" text-anchor="middle" font-size="11" fill="#a85515" font-weight="bold">96%</text>
+<line x1="399.6666666666667" y1="256.18455662450907" x2="399.6666666666667" y2="107.66155754943942" stroke="#a85515" stroke-width="1.5"/>
+<text x="376.6666666666667" y="478" text-anchor="middle">T=60</text>
+<text x="376.6666666666667" y="494" text-anchor="middle" font-size="10" fill="#888">n=20</text>
+<rect x="60" y="504" width="13" height="13" fill="#9bb7d4"/>
+<text x="78" y="515" font-size="11">strong 当分母(旧)</text>
+<rect x="210" y="504" width="13" height="13" fill="#e1843a"/>
+<text x="228" y="515" font-size="11">vla 当分母(新, verdict i)</text>
+<text x="540" y="72" font-weight="bold">② 分数阶梯 cohort4 中位数 (T=50)</text>
+<line x1="540" y1="460.0" x2="860" y2="460.0" stroke="#eee"/>
+<text x="534" y="464.0" text-anchor="end" font-size="11">0</text>
+<line x1="540" y1="382.8018852592231" x2="860" y2="382.8018852592231" stroke="#eee"/>
+<text x="534" y="386.8018852592231" text-anchor="end" font-size="11">1000</text>
+<line x1="540" y1="305.6037705184463" x2="860" y2="305.6037705184463" stroke="#eee"/>
+<text x="534" y="309.6037705184463" text-anchor="end" font-size="11">2000</text>
+<line x1="540" y1="228.40565577766944" x2="860" y2="228.40565577766944" stroke="#eee"/>
+<text x="534" y="232.40565577766944" text-anchor="end" font-size="11">3000</text>
+<line x1="540" y1="151.20754103689262" x2="860" y2="151.20754103689262" stroke="#eee"/>
+<text x="534" y="155.20754103689262" text-anchor="end" font-size="11">4000</text>
+<rect x="548.0" y="251.33349585568016" width="64.0" height="208.66650414431984" fill="#9bb7d4"/>
+<text x="580.0" y="247.33349585568016" text-anchor="middle" font-size="11" font-weight="bold">2703</text>
+<text x="580.0" y="476" text-anchor="middle" font-size="10">strong</text>
+<rect x="628.0" y="209.14472614984564" width="64.0" height="250.85527385015436" fill="#b9a0d4"/>
+<text x="660.0" y="205.14472614984564" text-anchor="middle" font-size="11" font-weight="bold">3250</text>
+<text x="660.0" y="476" text-anchor="middle" font-size="10">blind</text>
+<rect x="708.0" y="192.9331220542825" width="64.0" height="267.06687794571747" fill="#e1843a"/>
+<text x="740.0" y="188.9331220542825" text-anchor="middle" font-size="11" font-weight="bold">3460</text>
+<text x="740.0" y="476" text-anchor="middle" font-size="10">vla</text>
+<rect x="788.0" y="120.71428571428574" width="64.0" height="339.2857142857143" fill="#5aa469"/>
+<text x="820.0" y="116.71428571428574" text-anchor="middle" font-size="11" font-weight="bold">4395</text>
+<text x="820.0" y="476" text-anchor="middle" font-size="10">seer</text>
+<text x="540" y="504" font-size="11" fill="#333">seer−blind(EVPI)=1200 · seer−vla(残差=对最强可玩玩家的不可约运气)=1035</text>
+<text x="540" y="520" font-size="11" fill="#a85515">vla&gt;blind ⇒ procedure 技能通道被 vla 吃满，残差≈纯信息价值</text>
+<text x="60" y="530" font-size="11" fill="#444">诚实口径：vla 是无真未来的强边缘化器，已超过 blind ⇒ vla-分母占比可 &gt;100%（含义见图②）。占比对在线强度单调上偏保守，故"只升"= 预注册 verdict(i) 命中。</text>
+</svg>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="540" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="940" height="540" fill="white"/>
+<text x="470.0" y="26" font-size="17" text-anchor="middle" font-weight="bold">连击=press-your-luck 赌局：维持概率随层级衰减 → 深连击是亏本押注</text>
+<text x="470.0" y="46" font-size="11" text-anchor="middle" fill="#555">strong N=120 T=50 · p_maintain=0.44(随层级 0.52→0.40→0.26→0.20→0.16) · combo 奖励占总分=53% · 连击均长 1.52 最长 6</text>
+<text x="64" y="74" font-weight="bold">① 期望未来 combo 奖励 G(C)：乐观常数-p vs 实测衰减-p</text>
+<line x1="64" y1="464.0" x2="464" y2="464.0" stroke="#eee"/>
+<text x="58" y="468.0" text-anchor="end" font-size="10">0</text>
+<line x1="64" y1="392.0511958767488" x2="464" y2="392.0511958767488" stroke="#eee"/>
+<text x="58" y="396.0511958767488" text-anchor="end" font-size="10">50</text>
+<line x1="64" y1="320.1023917534976" x2="464" y2="320.1023917534976" stroke="#eee"/>
+<text x="58" y="324.1023917534976" text-anchor="end" font-size="10">100</text>
+<line x1="64" y1="248.15358763024642" x2="464" y2="248.15358763024642" stroke="#eee"/>
+<text x="58" y="252.15358763024642" text-anchor="end" font-size="10">150</text>
+<line x1="64" y1="176.20478350699523" x2="464" y2="176.20478350699523" stroke="#eee"/>
+<text x="58" y="180.20478350699523" text-anchor="end" font-size="10">200</text>
+<line x1="64" y1="104.25597938374403" x2="464" y2="104.25597938374403" stroke="#eee"/>
+<text x="58" y="108.25597938374403" text-anchor="end" font-size="10">250</text>
+<rect x="75.0" y="361.7338865066646" width="26" height="102.26611349333541" fill="#c9b89b"/>
+<text x="88.0" y="358.7338865066646" text-anchor="middle" font-size="10" fill="#7a6a44">71</text>
+<rect x="107.0" y="414.9162608505299" width="26" height="49.08373914947009" fill="#c0392b"/>
+<text x="120.0" y="411.9162608505299" text-anchor="middle" font-size="10" fill="#7a1d14" font-weight="bold">34</text>
+<text x="104.0" y="482" text-anchor="middle">C=1</text>
+<text x="104.0" y="497" text-anchor="middle" font-size="10" fill="#a33">2.1×高估</text>
+<rect x="155.0" y="304.6917192278245" width="26" height="159.30828077217552" fill="#c9b89b"/>
+<text x="168.0" y="301.6917192278245" text-anchor="middle" font-size="10" fill="#7a6a44">111</text>
+<rect x="187.0" y="412.2320362898377" width="26" height="51.76796371016229" fill="#c0392b"/>
+<text x="200.0" y="409.2320362898377" text-anchor="middle" font-size="10" fill="#7a1d14" font-weight="bold">36</text>
+<text x="184.0" y="482" text-anchor="middle">C=2</text>
+<text x="184.0" y="497" text-anchor="middle" font-size="10" fill="#a33">3.1×高估</text>
+<rect x="235.0" y="247.6495519489844" width="26" height="216.3504480510156" fill="#c9b89b"/>
+<text x="248.0" y="244.6495519489844" text-anchor="middle" font-size="10" fill="#7a6a44">150</text>
+<rect x="267.0" y="409.7394409696514" width="26" height="54.26055903034859" fill="#c0392b"/>
+<text x="280.0" y="406.7394409696514" text-anchor="middle" font-size="10" fill="#7a1d14" font-weight="bold">38</text>
+<text x="264.0" y="482" text-anchor="middle">C=3</text>
+<text x="264.0" y="497" text-anchor="middle" font-size="10" fill="#a33">4.0×高估</text>
+<rect x="315.0" y="190.60738467014437" width="26" height="273.39261532985563" fill="#c9b89b"/>
+<text x="328.0" y="187.60738467014437" text-anchor="middle" font-size="10" fill="#7a6a44">190</text>
+<rect x="347.0" y="408.5436159181631" width="26" height="55.456384081836916" fill="#c0392b"/>
+<text x="360.0" y="405.5436159181631" text-anchor="middle" font-size="10" fill="#7a1d14" font-weight="bold">39</text>
+<text x="344.0" y="482" text-anchor="middle">C=4</text>
+<text x="344.0" y="497" text-anchor="middle" font-size="10" fill="#a33">4.9×高估</text>
+<rect x="395.0" y="133.56521739130437" width="26" height="330.4347826086956" fill="#c9b89b"/>
+<text x="408.0" y="130.56521739130437" text-anchor="middle" font-size="10" fill="#7a6a44">230</text>
+<rect x="427.0" y="395.28988885993056" width="26" height="68.71011114006944" fill="#c0392b"/>
+<text x="440.0" y="392.28988885993056" text-anchor="middle" font-size="10" fill="#7a1d14" font-weight="bold">48</text>
+<text x="424.0" y="482" text-anchor="middle">C=5</text>
+<text x="424.0" y="497" text-anchor="middle" font-size="10" fill="#a33">4.8×高估</text>
+<rect x="64" y="508" width="13" height="13" fill="#c9b89b"/>
+<text x="82" y="519" font-size="11">G_const(常数 p̄=0.44, 乐观)</text>
+<rect x="294" y="508" width="13" height="13" fill="#c0392b"/>
+<text x="312" y="519" font-size="11">G_emp(实测衰减 p_c, 真实)</text>
+<text x="560" y="74" font-weight="bold">② strong 实测连击链长度分布</text>
+<rect x="608.5714285714286" y="84.0" width="40.57142857142857" height="380.0" fill="#c08552"/>
+<text x="628.8571428571429" y="81.0" text-anchor="middle" font-size="10">2687</text>
+<text x="628.8571428571429" y="480" text-anchor="middle" font-size="10">1</text>
+<rect x="657.1428571428571" y="280.0104205433569" width="40.57142857142857" height="183.98957945664313" fill="#c08552"/>
+<text x="677.4285714285714" y="277.0104205433569" text-anchor="middle" font-size="10">1301</text>
+<text x="677.4285714285714" y="480" text-anchor="middle" font-size="10">2</text>
+<rect x="705.7142857142858" y="412.6639374767398" width="40.57142857142857" height="51.33606252326018" fill="#c08552"/>
+<text x="726.0000000000001" y="409.6639374767398" text-anchor="middle" font-size="10">363</text>
+<text x="726.0000000000001" y="480" text-anchor="middle" font-size="10">3</text>
+<rect x="754.2857142857142" y="453.2519538518794" width="40.57142857142857" height="10.74804614812058" fill="#c08552"/>
+<text x="774.5714285714286" y="450.2519538518794" text-anchor="middle" font-size="10">76</text>
+<text x="774.5714285714286" y="480" text-anchor="middle" font-size="10">4</text>
+<rect x="802.8571428571429" y="462.3029400818757" width="40.57142857142857" height="1.697059918124296" fill="#c08552"/>
+<text x="823.1428571428572" y="459.3029400818757" text-anchor="middle" font-size="10">12</text>
+<text x="823.1428571428572" y="480" text-anchor="middle" font-size="10">5</text>
+<rect x="851.4285714285714" y="463.7171566803126" width="40.57142857142857" height="0.2828433196874016" fill="#c08552"/>
+<text x="871.7142857142858" y="460.7171566803126" text-anchor="middle" font-size="10">2</text>
+<text x="871.7142857142858" y="480" text-anchor="middle" font-size="10">6</text>
+<text x="730.0" y="498" text-anchor="middle" font-size="11">连击链长度（连续消除次数）</text>
+<text x="560" y="519" font-size="11" fill="#444">87% 的连击链 ≤2 长；最长仅 6 → 长连击罕见</text>
+<text x="64" y="528" font-size="11" fill="#444">读图：combo 占分高达 53%，但价值来自**大量短链**而非英雄式长连击；常数-p 计算器把深连击赌局高估 4×（维持概率随层级 0.52→0.16 速降）。</text>
+</svg>

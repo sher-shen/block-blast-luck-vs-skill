@@ -4,10 +4,20 @@
 > 完整时间线见 [log.md](log.md) 续12 补1~补11。最终 winner/verdict 待 Phase 5 写 rl8_results.md。
 > 操作性 source-of-truth = `../PLAN_8x8_RL.md` 状态块 + NEXT_ACTION。
 
-## 当前状态（截至 2026-06-02）
+## 当前状态
+> ⚠️ **终局更新（2026-06-03/04，取代下面"截至 2026-06-02"快照）**：logv（expm1 爆）与 rate（线性爬顶）
+> **都在无折扣 T=50 训练发散**（log.md 补17–20）→ 确诊**非变换问题，是无折扣长-horizon mode-T FVI 本质
+> 不稳**（deadly triad 跨 50 层复利，与 4×4 dp4 当年同构）。用户拍板 **γ=0.95 只当训练稳定器**（判强/
+> 天花板仍用无折扣实战得分，γ 不进 channelB → §0.2 红线不破）→ 干净 plateau（补21/续13）。
+> competence gate：纯 greedy-on-V **RL≪strong**（1832/1888 vs 2378，rl8_competence*.json；根因=OOD 高估
+> 早死，B=200 放开候选池暴跌坐实稳健非池假象）→ **on-policy 策略迭代修好 = 2353 ≈ strong**（TOST 等价，
+> rl8_competence_pi.json）→ **价值引导前瞻 vla D2 S30 = 2924±49 = 最终交付**（+25% vs strong）。
+> 后续与"2950 重框"见 [strongest_policy.md](strongest_policy.md) + log.md 续13–18。
+
+### （历史快照，截至 2026-06-02）
 - **Phase 0 DONE**：dp4 默认 γ 0.99→0.95(复现 3.9157)、移除单窗 assert 字段、README 补 3 引用。
 - **§3.0 迁移 gate PASS**：rl8 的 8×8-CNN + 采样 buffer + FVI 在 4×4 复现 bdp_T(8)=3.5934/(16)=4.8637，**T8 1.04% / T16 2.74%**（rl8_gate.json）→ pipeline 架构认证（用 transform='rate'）。
-- **§3.6 变换未定盘**（Phase 1 唯一卡点）：见下「×k 放大陷阱」+「高-k 自洽真裁判」。combo 接线已完成。**前锋=logv**（满覆盖隔离测尾部 rel 24-28% vs rate 57-66%，补13）。定盘规则已按用户审计**重写**（补14）：旧"训 T=3 比锚选最小"作废→改 (a)机理优先 logv (b)T=3 锚只证伪 bug (c)真裁判=高-k 自洽 V_net vs MC-rollout@k50 (d)全败→USER_GATE。instrument 已落地+smoke 全绿，logv T=50 训练进行中。
+- ~~**§3.6 变换未定盘**（Phase 1 唯一卡点）~~（已终局，见上）：见下「×k 放大陷阱」+「高-k 自洽真裁判」。combo 接线已完成。当时前锋=logv（补13）；定盘规则按用户审计重写（补14）。
 - **8×8 预算可行**：单 sweep ~15-19s(MPS, T=50, hidden=128)，收敛外推 ~13-18h ≪ HARD_CEILING 7 天。
 
 ## 工程教训（可复用，非显然——未来 8×8 RL / CNN-FVI 直接套）

@@ -39,10 +39,17 @@
   - LA_strongbase − LA_greedy = +2427±1007 → 换 strong 基策略显著回血(证实:基策略须≥被改进者)。
   - LA_strongbase − strong = −1214±1814 → 前瞻与 beam-strong **统计打平** → **收敛**。
 - 结论：beam-strong 已近这一启发式族技能天花板，加搜索深度收益递减(收敛证据)。
-- 真要逼近 oracle(~12000 vs strong~6100)需**学习型价值函数(RL/DQN)**，非更深搜索。
+- ~~真要逼近 oracle(~12000 vs strong~6100)~~（⚠️ 这是**已撤回**的无界-oracle 口径，勿引数字；正确口径=固定 T 两通道，见 [[oracle_immortality_reframe]]）需**学习型价值函数(RL/DQN)**，非更深搜索。
 - 工程教训：bitboard(64位int)必需；rollout 必须 CRN 配对+独立RNG；天花板别循环自定义。
 
-## 待办（验证最优性）
-- [ ] (可选) RL 价值函数逼近真天花板
-- [ ] 4×4 精确 DP 基准
-- [x] 离线上界(oracle hindsight ~12000)：oracle−strong≈一半=信息缺失代价=运气量级
+## 待办（验证最优性）—— 2026-06-06 状态更新
+- [x] RL 价值函数逼近真天花板 ✅ **已做完整条线**（rl4 双 gate PASS → rl8 8×8）。结果：纯 greedy-on-V
+  经 on-policy PI 修复后 **2353 ≈ strong 2378**（TOST 等价）；**价值引导前瞻 vla = 2924±49（+25% vs strong）
+  = 现最强在线策略**；CEM-Dellacherie 独立基线 ≈ 同水平 → "在线天花板"获三方法合围（@T=50 口径），
+  详见 [[strongest_policy]]。注意：vla 比 strong 强 25% ⇒ "strong=在线天花板"假设已松动，EVPI 占比待用
+  vla 重算（占比只会升，ROADMAP verdict (i)，未做）。
+- [x] 4×4 精确 DP 基准 ✅ dp4.py：贪心 ≈86% 最优（greedy_optimality_ratio 0.859）、discounted VOI≈在线最优 3×。
+- [x] 离线上界(oracle hindsight)：⚠️ 旧"~12000、oracle−strong≈一半"口径已撤回（无界 horizon ill-defined）；
+  现行 = 固定 T 两通道（hazard + EVPI 57–69%），见 [[oracle_immortality_reframe]]。
+- 本文件"对运气占比的洞察"（收敛即可、不需真最优）仍是现行方法论；"预期占比升到 75%+"是当时猜测，
+  待 vla-重算 EVPI 验证，勿当结论引用。

@@ -1,6 +1,12 @@
 # 核心结论：运气 vs 技能（300 局同种子）
 
-> ⚠️ **线性计分版（CV=91% / 技能29-36%）为 legacy**，已被非线性两通道分析取代。现行 headline 见 [[oracle_immortality_reframe]]（EVPI 57–69% + 存活 hazard）与根 GOAL.md。下文保留作版本演进留痕。
+> ⚠️ **本文件全部数字为 legacy（早期 sim.py 引擎、300 局）**，已被两层取代，引用以新值为准：
+> ① **方差分解/阶梯的现行权威 = `results.json`（experiments.py，200 种子，fast.py beam-strong）**：
+> random 57 / greedy 657 / strong **6453**（地板 **113×**，非下文 67×）；熟练间 ANOVA **技能 34 / 运气 34 / 交互 32**
+> （非下文 31/35/34）；**交叉点 ≈3408、天花板 6453**（非下文 2163/4137）——差异来源 = 下文用的是较弱的
+> sim.py 版 strong + 300 局小样本。README/GOAL 均引 results.json 值。
+> ② **运气 headline 现行 = oracle 两通道**（[[oracle_immortality_reframe]]：EVPI 57–69% + 存活 hazard），线性版 CV=91% 勿引。
+> 下文保留作版本演进留痕；定性结论（地板技能/天花板运气、交叉点≈高手均分一半）两版一致。
 
 ## 计分模型两版对比
 - **线性版**（每消1条+定值）vs **非线性版**（multi-clear三角数 + combo每连+50 + 清盘+300，见 scoring.py）

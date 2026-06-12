@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="460" font-family="Helvetica,Arial,sans-serif" font-size="13">
+<rect width="820" height="460" fill="white"/>
+<text x="410.0" y="26" font-size="17" text-anchor="middle" font-weight="bold">Step B: 发牌分布敏感性 — 善意发牌 vs 均匀38 (M=100, T=500, 最强策略)</text>
+<text x="410.0" y="44" font-size="12" text-anchor="middle" fill="#666">蓝=生存回合(左轴) 橙=总分(右轴) · 误差棒=16-block SE · ✂=撞T=500封顶比例(数值被截断,为下界)</text>
+<line x1="64" y1="390" x2="756" y2="390" stroke="#333"/>
+<line x1="64" y1="56" x2="64" y2="390" stroke="#36c"/>
+<line x1="756" y1="56" x2="756" y2="390" stroke="#e80"/>
+<text x="18" y="223.0" text-anchor="middle" fill="#36c" transform="rotate(-90 18 223.0)">生存回合 surv</text>
+<text x="804" y="223.0" text-anchor="middle" fill="#e80" transform="rotate(-90 804 223.0)">总分</text>
+<rect x="88.67999999999998" y="340.96906969162416" width="41.52" height="49.030930308375844" fill="#69c"/>
+<line x1="109.43999999999998" y1="344.1088969360695" x2="109.43999999999998" y2="337.82924244717884" stroke="#234" stroke-width="1.4"/>
+<text x="109.43999999999998" y="334.96906969162416" text-anchor="middle" font-size="11" fill="#36c">83</text>
+<rect x="136.2" y="321.1802939481839" width="41.52" height="68.81970605181613" fill="#f93"/>
+<line x1="156.95999999999998" y1="325.55058796240786" x2="156.95999999999998" y2="316.80999993395994" stroke="#a40" stroke-width="1.4"/>
+<text x="156.95999999999998" y="315.1802939481839" text-anchor="middle" font-size="11" fill="#e80">5814</text>
+<text x="133.2" y="410" text-anchor="middle" font-weight="bold">均匀38(现)</text>
+<rect x="227.08" y="256.8194820687518" width="41.52" height="133.18051793124818" fill="#69c"/>
+<line x1="247.84" y1="267.3142328636966" x2="247.84" y2="246.32473127380715" stroke="#234" stroke-width="1.4"/>
+<text x="247.84" y="250.81948206875182" text-anchor="middle" font-size="11" fill="#36c">226</text>
+<rect x="274.6" y="215.0981569571821" width="41.52" height="174.9018430428179" fill="#f93"/>
+<line x1="295.36" y1="228.95025429273883" x2="295.36" y2="201.24605962162536" stroke="#a40" stroke-width="1.4"/>
+<text x="295.36" y="209.0981569571821" text-anchor="middle" font-size="11" fill="#e80">14775</text>
+<text x="271.6" y="410" text-anchor="middle" font-weight="bold">去3x3</text>
+<text x="271.6" y="428" text-anchor="middle" font-size="11" fill="#c33">✂ 16/100 封顶</text>
+<text x="271.6" y="444" text-anchor="middle" font-size="11" fill="#197">surv 2.7×</text>
+<rect x="365.48" y="197.5509869159401" width="41.52" height="192.4490130840599" fill="#69c"/>
+<line x1="386.24" y1="209.39454857872815" x2="386.24" y2="185.707425253152" stroke="#234" stroke-width="1.4"/>
+<text x="386.24" y="191.5509869159401" text-anchor="middle" font-size="11" fill="#36c">326</text>
+<rect x="413.0" y="155.51918062780672" width="41.52" height="234.48081937219328" fill="#f93"/>
+<line x1="433.76" y1="170.16286888792212" x2="433.76" y2="140.87549236769132" stroke="#a40" stroke-width="1.4"/>
+<text x="433.76" y="149.51918062780672" text-anchor="middle" font-size="11" fill="#e80">19808</text>
+<text x="410.0" y="410" text-anchor="middle" font-weight="bold">去≥6格</text>
+<text x="410.0" y="428" text-anchor="middle" font-size="11" fill="#c33">✂ 37/100 封顶</text>
+<text x="410.0" y="444" text-anchor="middle" font-size="11" fill="#197">surv 3.9×</text>
+<rect x="503.8800000000001" y="136.48815266674464" width="41.52" height="253.51184733325536" fill="#69c"/>
+<line x1="524.6400000000001" y1="143.4396059174207" x2="524.6400000000001" y2="129.5366994160686" stroke="#234" stroke-width="1.4"/>
+<text x="524.6400000000001" y="130.48815266674464" text-anchor="middle" font-size="11" fill="#36c">430</text>
+<rect x="551.4000000000001" y="106.9491525423729" width="41.52" height="283.0508474576271" fill="#f93"/>
+<line x1="572.1600000000001" y1="115.02863279916406" x2="572.1600000000001" y2="98.86967228558169" stroke="#a40" stroke-width="1.4"/>
+<text x="572.1600000000001" y="100.9491525423729" text-anchor="middle" font-size="11" fill="#e80">23911</text>
+<text x="548.4000000000001" y="410" text-anchor="middle" font-weight="bold">去≥5格</text>
+<text x="548.4000000000001" y="428" text-anchor="middle" font-size="11" fill="#c33">✂ 74/100 封顶</text>
+<text x="548.4000000000001" y="444" text-anchor="middle" font-size="11" fill="#197">surv 5.2×</text>
+<rect x="642.2800000000001" y="106.94915254237286" width="41.52" height="283.0508474576271" fill="#69c"/>
+<line x1="663.0400000000001" y1="111.16286195059641" x2="663.0400000000001" y2="102.73544313414926" stroke="#234" stroke-width="1.4"/>
+<text x="663.0400000000001" y="100.94915254237286" text-anchor="middle" font-size="11" fill="#36c">480</text>
+<rect x="689.8000000000001" y="185.46939911625847" width="41.52" height="204.53060088374153" fill="#f93"/>
+<line x1="710.5600000000001" y1="188.4224758906822" x2="710.5600000000001" y2="182.51632234183472" stroke="#a40" stroke-width="1.4"/>
+<text x="710.5600000000001" y="179.46939911625847" text-anchor="middle" font-size="11" fill="#e80">17278</text>
+<text x="686.8000000000001" y="410" text-anchor="middle" font-weight="bold">强偏小块</text>
+<text x="686.8000000000001" y="428" text-anchor="middle" font-size="11" fill="#c33">✂ 94/100 封顶</text>
+<text x="686.8000000000001" y="444" text-anchor="middle" font-size="11" fill="#197">surv 5.8×</text>
+</svg>

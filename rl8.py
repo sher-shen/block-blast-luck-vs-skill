@@ -33,7 +33,9 @@ import torch.nn as nn
 torch.manual_seed(0)
 # §3.2：先 CPU；实测 CNN 全 reachable(41503) full-batch FVI 在 CPU=2187ms/fwd+bwd
 # → 迁移 gate ~180s/sweep（5h+ 才收敛）。MPS=211ms（10×）→ ~17s/sweep。故默认 MPS。
-DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
+DEVICE = ("cuda" if torch.cuda.is_available()
+          else "mps" if torch.backends.mps.is_available()
+          else "cpu")  # Windows+NVIDIA → cuda; Mac → mps; 否则 cpu
 BOARD_DIM = 8           # 网络永远吃 8×8 平面（4×4 引擎 zero-pad 进左上角）
 T_MAX = 16              # 迁移 gate 在 k∈{8,16}；8×8 训练时按 HORIZON_T 调
 # 补20：无折扣 mode-T 在 T=50 长程发散（deadly triad 跨 50 层复利，logv/rate 都爆）。
@@ -474,6 +476,47 @@ def train_modeT(engine, max_sweeps=400, inner_steps=2, lr=1e-3, hidden=64,
             "wall_budget_exceeded": wall > wall_budget_s}
 
 
+def train_onpolicy(transform="rate", T=50, n_outer=6, sweeps=30, cap=22000,
+                   hidden=128, seed_ckpt=None, ckpt_out=None):
+    """近似策略迭代：修 greedy-on-V 的分布漂移（competence 诊断出 rl 在 OOD 态过度高估→早死）。
+    交替 (用当前 V 的贪心策略收集途经态) ↔ (在 含这些态+strong/seer 锚点 的 buffer 上重训 V)，
+    让 V 在策略**真正会遇到**的局面上变准。可从 seed_ckpt（已 plateau 的 g98）热启。
+    返回 {ckpt, hist}。"""
+    eng = Engine8()
+    ckpt = ckpt_out or f"/tmp/rl8_8x8_{transform}_T{T}_pi.pt"
+    net = RateNet(hidden=hidden).to(DEVICE)
+    if seed_ckpt:
+        net.load_state_dict(torch.load(seed_ckpt, map_location=DEVICE))
+        torch.save(net.state_dict(), ckpt)
+        print(f"[PI] 热启 seed={seed_ckpt} → {ckpt}", flush=True)
+    # strong+seer 锚点（始终保留，给 V 高质量覆盖）
+    offpol = offpolicy_states(eng, n_strong=20, n_seer=20, seed="rl8-pi-off")
+    onpol = collect_buffer(eng, net, 200, T, 0.1, "rl8-pi-0", transform=transform)
+    buf = list(offpol | onpol | {(0, 0)})
+    hist = []
+    for it in range(n_outer):
+        print(f"\n[PI outer {it}] |buf|={len(buf)}（onpol+anchor）→ 训 {sweeps} sweeps", flush=True)
+        res = train_modeT(eng, transform=transform, hidden=hidden, lr=5e-4, inner_steps=3,
+                          ckpt_path=ckpt, resume_ckpt=ckpt, ckpt_every=10,
+                          max_sweeps=sweeps, min_sweeps=sweeps, wall_budget_s=3600,
+                          grad_clip=1.0, buf_override=buf, recollect_every=10**9)
+        net = RateNet(hidden=hidden).to(DEVICE)
+        net.load_state_dict(torch.load(ckpt, map_location=DEVICE))
+        new_on = collect_buffer(eng, net, 200, T, 0.1, f"rl8-pi-{it+1}", transform=transform)
+        merged = set(buf) | new_on
+        if len(merged) > cap:                      # 限容：保锚点 + 随机保留其余到 cap
+            keep = set(offpol)
+            others = [s for s in merged if s not in keep]
+            rng = random.Random(f"pi-cap-{it}")
+            rng.shuffle(others)
+            merged = keep | set(others[:max(0, cap - len(keep))])
+        buf = list(merged)
+        hist.append({"outer": it, "v8": res["v8"], "v16": res["v16"], "buf": len(buf)})
+        print(f"[PI outer {it}] v8={res['v8']:.1f} v16={res['v16']:.1f} → ckpt={ckpt}", flush=True)
+    print(f"\n-> PI 完成 ckpt={ckpt}", flush=True)
+    return {"ckpt": ckpt, "hist": hist}
+
+
 # ====================================================================
 # §3.4 off-policy 状态生成：strong + seer rollout 途经态（补采，防 on-policy 漂移）
 # 用于 (a) 8×8 训练 buffer 补采；(b) §3.6★(c) 自洽探针采样。两处共用同一分布 →
@@ -659,6 +702,511 @@ def selfcons_highk(transform, ckpt, hidden=128, M=2000, ks=(25, 50), n_probes=32
 
 
 # ====================================================================
+# §5/§6 Phase 3 competence gate：rl-greedy-on-V vs strong（CRN 配对，固定 T）
+# strength-first 真裁判 = 实战累加分（无折扣），不看 V 校准。
+# ====================================================================
+def _play_rl_streams(net, engine, streams, transform):
+    """rl-greedy-on-V 在 M 条**固定发牌流**(CRN) 上各玩到死/到 T。向量化：M episodes 并行，
+    每轮把所有 alive episode 的候选 afterstate 批量过 net 一次（与 mc_rollout_value 同骨架）。
+    选点用 γ-折扣续值（与训练/rollout 一致）；totals 累加**原始** hand_score（无折扣判强口径）。
+    返回 (totals:list[float], survived:list[int])。"""
+    M = len(streams); T = len(streams[0])
+    boards = [0] * M; combos = [0] * M; totals = [0.0] * M
+    alive = [True] * M; survived = [0] * M
+    for rnd in range(T):
+        kleft = T - rnd
+        flat_b, flat_c, flat_hs, span = [], [], [], {}
+        for m in range(M):
+            if not alive[m]:
+                continue
+            cands = engine.round_candidates(boards[m], combos[m], streams[m][rnd])
+            if not cands:
+                alive[m] = False; continue
+            start = len(flat_b)
+            for (s2, c2, hs) in cands:
+                flat_b.append(s2); flat_c.append(float(c2)); flat_hs.append(hs)
+            span[m] = (start, len(flat_b))
+        if not flat_b:
+            break
+        if kleft - 1 == 0:
+            vtot = [0.0] * len(flat_b)
+        else:
+            with torch.no_grad():
+                kn = torch.full((len(flat_b),), (kleft - 1) / T_MAX, device=DEVICE)
+                vtot = decode_vtot(net(board_planes_fast8(flat_b),
+                                       torch.tensor(flat_c, device=DEVICE), kn),
+                                   kleft - 1, transform).tolist()
+        for m, (s, e) in span.items():
+            bj, bv = s, flat_hs[s] + GAMMA * vtot[s]
+            for j in range(s + 1, e):
+                v = flat_hs[j] + GAMMA * vtot[j]
+                if v > bv:
+                    bv, bj = v, j
+            boards[m] = flat_b[bj]; combos[m] = int(flat_c[bj]); totals[m] += flat_hs[bj]
+            survived[m] = rnd + 1
+    return totals, survived
+
+
+def _play_baseline_stream(engine, stream, kind):
+    """在一条固定发牌流上玩 strong 或 greedy（CPU，无前瞻）。返回 (total, survived_rounds)。"""
+    fast = engine.fast
+    board, combo, total = 0, 0, 0.0
+    for rnd, hand in enumerate(stream):
+        if kind == "strong":
+            sc, board, combo, alive = fast.strong_hand(board, combo, hand, B=engine.beam_B)
+        else:  # greedy（盲贪心，无 V、无前瞻）= 弱基线，验 rl 是否碾压启发式
+            sc, board, combo, alive = fast.greedy_hand(board, combo, hand)
+        if not alive:
+            return total, rnd
+        total += sc
+    return total, len(stream)
+
+
+def _paired_stats(diffs, nb=16, n_boot=2000, boot_seed="comp-boot"):
+    """配对差值统计（§0.3 禁 ratio-of-means，纯差值）：mean + 16-block-SE +
+    paired-bootstrap 90%/95% CI（确定性 seed）。diffs=逐 seed 的 (a−b)。"""
+    M = len(diffs); mean = sum(diffs) / M
+    blk = M // nb
+    bmeans = [sum(diffs[i * blk:(i + 1) * blk]) / blk for i in range(nb)]
+    bm = sum(bmeans) / nb
+    block_se = (sum((x - bm) ** 2 for x in bmeans) / (nb - 1) / nb) ** 0.5
+    rng = random.Random(boot_seed)
+    boots = []
+    for _ in range(n_boot):
+        s = 0.0
+        for _ in range(M):
+            s += diffs[rng.randrange(M)]
+        boots.append(s / M)
+    boots.sort()
+    def q(p):
+        return boots[min(n_boot - 1, max(0, int(p * n_boot)))]
+    return {"mean": mean, "block_se": block_se,
+            "ci95": [q(0.025), q(0.975)], "ci90": [q(0.05), q(0.95)]}
+
+
+def competence_gate(transform, ckpt, hidden=128, T=50, M_cal=300, M_eval=2000,
+                    beam_B=12, out_json="rl8_competence.json"):
+    """§5/§6 Phase 3：rl-greedy-on-V vs strong（CRN 配对，固定 T，无前瞻）= 最强策略 verdict。
+    **预注册流程（§0.9）**：calibration seeds（与训练+eval 不相交）估 strong 均值 → 定死
+    Δ_eq=0.05×strong_mean + 按 σ_diff 报 TOST 功效 → 再在 eval seeds 跑 → TOST 判 ≫/≈/≪。
+    需先把 T_MAX=生产 horizon=50（CLI 已设）。beam_B=候选池大小（§5 disambiguation 放大到 64/200
+    验 RL≪strong 是否同源小池假象）。返回 verdict dict。"""
+    eng = Engine8(beam_B=beam_B)
+    net = RateNet(hidden=hidden).to(DEVICE)
+    net.load_state_dict(torch.load(ckpt, map_location=DEVICE))
+    print(f"=== §5/§6 competence gate | transform={transform} T={T} | ckpt={ckpt} "
+          f"| GAMMA={GAMMA}（选点折扣，得分无折扣累加） ===", flush=True)
+
+    def gen_streams(tag, M):
+        out = []
+        for m in range(M):
+            rng = random.Random(f"{tag}-{m}")
+            out.append([eng.sample_hand(rng) for _ in range(T)])
+        return out
+
+    # ---- 1) CALIBRATION（与训练 seed["rl8-*"] + eval seed 不相交）：定 Δ_eq + 估 σ_diff ----
+    t0 = time.time()
+    cal_streams = gen_streams("comp-cal", M_cal)
+    rl_cal, _ = _play_rl_streams(net, eng, cal_streams, transform)
+    str_cal = [_play_baseline_stream(eng, s, "strong")[0] for s in cal_streams]
+    strong_mean_cal = sum(str_cal) / M_cal
+    DELTA_EQ = 0.05 * strong_mean_cal                       # 预注册 margin（单位=总分）
+    diff_cal = [rl_cal[i] - str_cal[i] for i in range(M_cal)]
+    dmean = sum(diff_cal) / M_cal
+    sd = (sum((d - dmean) ** 2 for d in diff_cal) / (M_cal - 1)) ** 0.5
+    se_eval = sd / (M_eval ** 0.5)
+    # TOST 功效：true diff≈0 时 90% CI 半宽 = 1.645×SE_eval，须 < Δ_eq 才有等价检出力
+    power_ok = (1.645 * se_eval) < DELTA_EQ
+    print(f"[cal] M_cal={M_cal}  strong_mean={strong_mean_cal:.1f}  → Δ_eq=0.05×={DELTA_EQ:.2f}", flush=True)
+    print(f"[cal] rl_mean={sum(rl_cal)/M_cal:.1f}  diff(rl-strong) mean={dmean:.1f}  sigma_diff={sd:.1f}", flush=True)
+    print(f"[cal] M_eval={M_eval} → SE_eval≈{se_eval:.2f}; 1.645·SE={1.645*se_eval:.2f} "
+          f"< Δ_eq={DELTA_EQ:.2f}? 等价检出力{'≥0.8 ✓' if power_ok else '不足 ⚠（CI 可能跨 Δ_eq → inconclusive）'}",
+          flush=True)
+
+    # ---- 2) EVAL（冻结、与训练+cal 不相交）：rl vs strong + greedy 基线 ----
+    eval_streams = gen_streams("comp-eval", M_eval)
+    rl_ev, rl_surv = _play_rl_streams(net, eng, eval_streams, transform)
+    str_ev, str_surv = [], []
+    grd_ev = []
+    for s in eval_streams:
+        st, ss = _play_baseline_stream(eng, s, "strong"); str_ev.append(st); str_surv.append(ss)
+        grd_ev.append(_play_baseline_stream(eng, s, "greedy")[0])
+    d_rs = [rl_ev[i] - str_ev[i] for i in range(M_eval)]    # rl − strong（主判据）
+    d_rg = [rl_ev[i] - grd_ev[i] for i in range(M_eval)]    # rl − greedy（碾压检）
+    st_rs = _paired_stats(d_rs); st_rg = _paired_stats(d_rg)
+
+    # ---- 3) TOST verdict（90% CI vs ±Δ_eq；§6 路由）----
+    lo90, hi90 = st_rs["ci90"]
+    if lo90 > DELTA_EQ:
+        verdict = "RL≫strong"          # §6(i) 天花板被低估 → EVPI 占比上修
+    elif hi90 < -DELTA_EQ:
+        verdict = "RL≪strong"          # §6(iii) 预算内未达天花板 → inconclusive（永不当结论）
+    elif lo90 >= -DELTA_EQ and hi90 <= DELTA_EQ:
+        verdict = "RL≈strong"          # §6(ii) TOST 等价 → 天花板两方法佐证（措辞降级：共享候选池）
+    else:
+        verdict = "inconclusive"        # CI 跨 Δ_eq 边界：既不等价也不显著优/劣
+
+    res = {"transform": transform, "T": T, "GAMMA": GAMMA, "ckpt": ckpt, "beam_B": beam_B,
+           "M_cal": M_cal, "M_eval": M_eval, "DELTA_EQ": DELTA_EQ,
+           "strong_mean_cal": strong_mean_cal, "sigma_diff_cal": sd,
+           "tost_power_ok": bool(power_ok),
+           "rl_mean": sum(rl_ev) / M_eval, "strong_mean": sum(str_ev) / M_eval,
+           "greedy_mean": sum(grd_ev) / M_eval,
+           "rl_survival_mean": sum(rl_surv) / M_eval, "strong_survival_mean": sum(str_surv) / M_eval,
+           "rl_minus_strong": st_rs, "rl_minus_greedy": st_rg,
+           "verdict": verdict, "wall_s": time.time() - t0}
+
+    print(f"\n[compete] === EVAL (M={M_eval}, CRN paired, T={T}) ===", flush=True)
+    print(f"  rl_mean={res['rl_mean']:.1f}  strong_mean={res['strong_mean']:.1f}  "
+          f"greedy_mean={res['greedy_mean']:.1f}", flush=True)
+    print(f"  rl-strong: mean={st_rs['mean']:.1f}  block-SE={st_rs['block_se']:.1f}  "
+          f"95%CI=[{st_rs['ci95'][0]:.1f},{st_rs['ci95'][1]:.1f}]  "
+          f"90%CI=[{lo90:.1f},{hi90:.1f}]", flush=True)
+    print(f"  rl-greedy: mean={st_rg['mean']:.1f}  95%CI=[{st_rg['ci95'][0]:.1f},{st_rg['ci95'][1]:.1f}]"
+          f"  (碾压检：下界>0 => rl 显著强于盲贪心)", flush=True)
+    print(f"  Δ_eq=±{DELTA_EQ:.1f}  → VERDICT = {verdict}", flush=True)
+    print(f"  ({res['wall_s']:.0f}s)", flush=True)
+
+    try:
+        allres = json.load(open(out_json, encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        allres = {}
+    allres[transform] = res
+    json.dump(allres, open(out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    print(f"-> wrote {out_json}", flush=True)
+    return res
+
+
+# ====================================================================
+# 可用工具：最强策略（价值引导前瞻 + 训练 V）的单步推荐 + 整局演示
+# ====================================================================
+def _print_board8(board, title=""):
+    if title:
+        print(title, flush=True)
+    print("   " + " ".join(str(c) for c in range(8)), flush=True)
+    for r in range(8):
+        row = "".join("█" if board & (1 << (r * 8 + c)) else "·" for c in range(8))
+        print(f"{r}  " + " ".join(row), flush=True)
+
+
+def _mask_rc(mask):
+    cells = [(i // 8, i % 8) for i in range(64) if mask & (1 << i)]
+    r0 = min(r for r, _ in cells); c0 = min(c for _, c in cells)
+    return r0, c0, cells
+
+
+def best_move(net, engine, board, combo, hand, k, transform, D=2, S=30, B=12):
+    """最强策略单步推荐：给 (board,combo) + 3 块手牌 + 剩余轮 k，返回最佳放置。
+    用价值引导前瞻（beam 候选 → 各 S 条 D-手 rollout + 学习 V 尾值 → 选最高）。
+    返回 {afterstate,(board,combo), hand_score, placements:[(piece_id,row,col,cells)], value}。"""
+    fast = engine.fast
+    cands = fast.beam_hand_path(board, combo, hand, B)
+    if not cands:
+        return None
+    NT = engine.NUM_TYPES
+    leaf_b, leaf_c, leaf_kl, roll_sc, owner = [], [], [], [], []
+    for ci, (nb, nc, hs, path) in enumerate(cands):
+        if D == 0:
+            leaf_b.append(nb); leaf_c.append(float(nc)); leaf_kl.append(max(k - 1, 0))
+            roll_sc.append(0.0); owner.append(ci)
+        else:
+            for s in range(S):
+                rng = random.Random(f"bestmove-{ci}-{s}")
+                fut = [rng.randrange(NT) for _ in range(3 * D)]
+                rscore, lb, lc, nd = _roll_leaf(fast, nb, nc, fut)
+                leaf_b.append(lb); leaf_c.append(float(lc)); leaf_kl.append(max(k - 1 - nd, 0))
+                roll_sc.append(rscore); owner.append(ci)
+    with torch.no_grad():
+        kt = torch.tensor([float(x) for x in leaf_kl], device=DEVICE)
+        vleaf = decode_vtot(net(board_planes_fast8(leaf_b),
+                                torch.tensor(leaf_c, device=DEVICE), kt / T_MAX), kt, transform).tolist()
+    agg = [0.0] * len(cands); cnt = [0] * len(cands)
+    for j, ci in enumerate(owner):
+        agg[ci] += roll_sc[j] + vleaf[j]; cnt[ci] += 1
+    best_ci, best_val = 0, -1e30
+    for ci, (nb, nc, hs, path) in enumerate(cands):
+        val = hs + agg[ci] / max(cnt[ci], 1)
+        if val > best_val:
+            best_val, best_ci = val, ci
+    nb, nc, hs, path = cands[best_ci]
+    placements = []
+    for (hidx, mask) in path:
+        pid = hand[hidx]
+        r0, c0, cells = _mask_rc(mask)
+        placements.append({"piece_id": pid, "row": r0, "col": c0, "cells": cells})
+    return {"board": nb, "combo": nc, "hand_score": hs, "value": best_val, "placements": placements}
+
+
+def play_game(ckpt, seed=0, T=50, D=2, S=30, B=12, transform="rate", hidden=128, show=True):
+    """用最强策略（价值引导前瞻 + 训练 V）玩整局，逐回合显示。返回 (total, survived)。"""
+    eng = Engine8()
+    net = RateNet(hidden=hidden).to(DEVICE)
+    net.load_state_dict(torch.load(ckpt, map_location=DEVICE))
+    rng = random.Random(f"play-{seed}")
+    board, combo, total = 0, 0, 0.0
+    if show:
+        print(f"=== 最强策略演示 | ckpt={ckpt} | D={D} S={S} B={B} | seed={seed} ===", flush=True)
+    for rnd in range(T):
+        k = T - rnd
+        hand = eng.sample_hand(rng)
+        mv = best_move(net, eng, board, combo, hand, k, transform, D, S, B)
+        if mv is None:
+            if show:
+                print(f"\n[第 {rnd+1} 轮] 手牌 {hand} 无处可放 → 游戏结束", flush=True)
+            return total, rnd
+        if show:
+            print(f"\n[第 {rnd+1}/{T} 轮] 手牌(piece_id)={hand}  combo={combo}", flush=True)
+            for p in mv["placements"]:
+                print(f"    放 piece {p['piece_id']} 于 (行{p['row']},列{p['col']})", flush=True)
+            print(f"    本手得分 +{mv['hand_score']:.0f}", flush=True)
+        board, combo, total = mv["board"], mv["combo"], total + mv["hand_score"]
+        if show:
+            _print_board8(board)
+            print(f"    累计得分 = {total:.0f}", flush=True)
+    if show:
+        print(f"\n=== 完局！存活 {T}/{T} 轮，总分 = {total:.0f} ===", flush=True)
+    return total, T
+
+
+# ====================================================================
+# 价值引导前瞻：前瞻搜索 + 学习 V 尾值（训练 + 搜索结合 = 最强可玩策略候选）
+# benchmark 洞察：拿高分的杠杆 = 降低未来价值估计方差（S↑）；V 提供零方差尾值替代部分 rollout。
+# ====================================================================
+def _roll_leaf(fast, board, combo, future):
+    """greedy(启发式) 玩 future（展平 piece 列表），返回 (rollout_score, leaf_board, leaf_combo, hands_done)。"""
+    total = 0.0; nd = 0
+    for i in range(0, len(future), 3):
+        for pid in future[i:i + 3]:
+            best = None
+            for m in fast.PLACE[pid]:
+                if board & m:
+                    continue
+                nb, cl, empty = fast.apply_mask(board, m)
+                pts, nc = fast.score_placement(fast.SCORING, fast.NCELLS[pid], cl, empty, combo)
+                val = pts + fast.heuristic(nb)
+                if best is None or val > best[0]:
+                    best = (val, nb, nc, pts)
+            if best is None:
+                return total, board, combo, nd          # rollout 中途死
+            _, board, combo, pts = best
+            total += pts
+        nd += 1
+    return total, board, combo, nd
+
+
+def play_vlookahead_stream(net, engine, stream, transform, D, S, B, seed_idx, use_heur=False):
+    """价值引导前瞻玩一条固定发牌流（CRN）。每候选末态：S 条 D-手 greedy rollout 累加真分，
+    叶子加学习 V(leaf, 剩余轮) 当尾值 → value = hand_score + mean_S[roll + V_leaf]。
+    D=0 → 纯 greedy-on-V。返回 (total, survived)。"""
+    fast = engine.fast
+    board, combo, total = 0, 0, 0.0
+    T = len(stream)
+    NT = engine.NUM_TYPES
+    for move, hand in enumerate(stream):
+        k = T - move
+        cands = fast.beam_hand(board, combo, hand, B)
+        if not cands:
+            return total, move
+        leaf_b, leaf_c, leaf_kl, roll_sc, owner = [], [], [], [], []
+        for ci, (nb, nc, hs) in enumerate(cands):
+            if D == 0:                                   # 纯 V：叶子=候选末态本身，剩 k-1 轮
+                leaf_b.append(nb); leaf_c.append(float(nc)); leaf_kl.append(max(k - 1, 0))
+                roll_sc.append(0.0); owner.append(ci)
+            else:
+                for s in range(S):
+                    rng = random.Random(f"vla-{seed_idx}-{move}-{ci}-{s}")
+                    fut = [rng.randrange(NT) for _ in range(3 * D)]
+                    rsc, lb, lc, nd = _roll_leaf(fast, nb, nc, fut)
+                    leaf_b.append(lb); leaf_c.append(float(lc)); leaf_kl.append(max(k - 1 - nd, 0))
+                    roll_sc.append(rsc); owner.append(ci)
+        with torch.no_grad():                            # 批量 V 评叶子（剩余轮各异→逐元素 ×k）
+            kt = torch.tensor([float(x) for x in leaf_kl], device=DEVICE)
+            kn = kt / T_MAX
+            vleaf = decode_vtot(net(board_planes_fast8(leaf_b),
+                                    torch.tensor(leaf_c, device=DEVICE), kn), kt, transform).tolist()
+        # 聚合每候选的 value = hand_score(+heur) + mean_S[roll + V_leaf]
+        agg = [0.0] * len(cands); cnt = [0] * len(cands)
+        for j, ci in enumerate(owner):
+            agg[ci] += roll_sc[j] + vleaf[j]; cnt[ci] += 1
+        best_ci, best_val = 0, -1e30
+        for ci, (nb, nc, hs) in enumerate(cands):
+            val = hs + agg[ci] / max(cnt[ci], 1) + (fast.heuristic(nb) if use_heur else 0.0)
+            if val > best_val:
+                best_val, best_ci = val, ci
+        nb, nc, hs = cands[best_ci]
+        board, combo, total = nb, nc, total + hs
+    return total, T
+
+
+def vbench(transform, ckpt, hidden=128, T=50, M=200, configs=None, out_json="rl8_vbench.json"):
+    """对比 strong / 纯 lookahead / 价值引导前瞻（用 ckpt 的 V）在同一 CRN 流上的实战得分。
+    找"训练+搜索"的最强可玩策略。configs=[(label,D,S,B)]，D=0 为纯 greedy-on-V。"""
+    eng = Engine8()
+    net = RateNet(hidden=hidden).to(DEVICE)
+    net.load_state_dict(torch.load(ckpt, map_location=DEVICE))
+    if configs is None:
+        configs = [("vla D0(greedy-on-V)", 0, 1, 12), ("vla D1 S10", 1, 10, 12),
+                   ("vla D2 S10", 2, 10, 12), ("vla D3 S10", 3, 10, 12)]
+    streams = []
+    for m in range(M):
+        rng = random.Random(f"bench-{m}")            # 与 bench_players 同 tag → 同流可跨文件比
+        streams.append([[rng.randrange(eng.NUM_TYPES) for _ in range(3)] for _ in range(T)])
+    print(f"=== vbench | ckpt={ckpt} | M={M} CRN | T={T} ===", flush=True)
+
+    def block_stats(xs, nb=16):
+        blk = len(xs) // nb
+        bm = [sum(xs[i * blk:(i + 1) * blk]) / blk for i in range(nb)]
+        mean = sum(bm) / nb
+        se = (sum((x - mean) ** 2 for x in bm) / (nb - 1) / nb) ** 0.5
+        return mean, se
+
+    res = {}
+    # strong 基线
+    strong_tot = []
+    for i in range(M):
+        b, c, tot = 0, 0, 0.0
+        for hand in streams[i]:
+            sc, b, c, alive = eng.fast.strong_hand(b, c, hand, B=12)
+            if not alive:
+                break
+            tot += sc
+        strong_tot.append(tot)
+    sm, sse = block_stats(strong_tot)
+    res["strong B12"] = {"mean": sm, "se": sse}
+    print(f"[strong B12          ] mean={sm:7.1f} ± {sse:5.1f}", flush=True)
+
+    for (label, D, S, B) in configs:
+        t0 = time.time()
+        rows = [play_vlookahead_stream(net, eng, streams[i], transform, D, S, B, i) for i in range(M)]
+        tots = [r[0] for r in rows]; survs = [r[1] for r in rows]
+        mean, se = block_stats(tots); smean, _ = block_stats([float(x) for x in survs])
+        diffs = [tots[i] - strong_tot[i] for i in range(M)]
+        dmean, dse = block_stats(diffs)
+        res[label] = {"mean": mean, "se": se, "survival": smean,
+                      "vs_strong": dmean, "vs_strong_se": dse, "wall_s": time.time() - t0}
+        flag = "✓更强" if dmean - 2 * dse > 0 else ("✗更弱" if dmean + 2 * dse < 0 else "≈")
+        print(f"[{label:20s}] mean={mean:7.1f} ± {se:5.1f}  surv={smean:4.1f}  "
+              f"Δstrong={dmean:+7.1f}±{dse:.1f} {flag}  ({res[label]['wall_s']:.0f}s)", flush=True)
+
+    best = max(res, key=lambda k: res[k]["mean"])
+    print(f"\n-> 最强 = {best} (mean={res[best]['mean']:.1f})", flush=True)
+    json.dump(res, open(out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    print(f"-> wrote {out_json}", flush=True)
+    return res
+
+
+# ====================================================================
+# §5 正交性诊断：beam top-B 候选池是否系统性裁掉 rl-V 偏好的落点
+# （RL≪strong 时验负结果非"同源候选池假象"：rl 选不到的落点 ≠ rl 真弱）
+# ====================================================================
+def _full_afterstates(engine, board, combo, hand, cap=120000):
+    """无 beam 剪枝**全枚举**手内 3 块顺序×落点（combo 贯穿），返回去重 afterstate
+    [(board',combo',hand_score_max)]。超 cap → 返回 None（该态太大，调用方记 skip，§no-silent-cap）。"""
+    f = engine.fast
+    states = [(board, combo, 0.0, ())]
+    for _ in range(3):
+        cand = []
+        for (b, c, sc, used) in states:
+            for i in range(3):
+                if i in used:
+                    continue
+                pid = hand[i]
+                for m in f.PLACE[pid]:
+                    if b & m:
+                        continue
+                    nb, cl, empty = f.apply_mask(b, m)
+                    pts, nc = f.score_placement(f.SCORING, f.NCELLS[pid], cl, empty, c)
+                    cand.append((nb, nc, sc + pts, used + (i,)))
+            if len(cand) > cap:
+                return None
+        if not cand:
+            return []
+        states = cand
+    best = {}                                   # 去重 (board,combo)：同末态不同 order 取最高 hand_score
+    for (b, c, sc, _) in states:
+        if (b, c) not in best or sc > best[(b, c)]:
+            best[(b, c)] = sc
+    return [(b, c, sc) for (b, c), sc in best.items()]
+
+
+def orthogonality_diag(transform, ckpt, hidden=128, T=50, n_rollouts=12,
+                       cap=120000, out_json="rl8_ortho.json"):
+    """§5：采 strong-rollout 中局态 × 随机手，比 rl-V-argmax over **full-enum** vs over **beam top-B**。
+    报：full-argmax 落在 beam top-B 外的比例（=beam 裁掉 rl 偏好落点）+ rl 自身 V 看 full 比 beam 高多少。
+    比例低 + V 差小 ⇒ 候选池公平 ⇒ RL≪strong 非同源池假象（负结果稳健）。"""
+    eng = Engine8()
+    net = RateNet(hidden=hidden).to(DEVICE)
+    net.load_state_dict(torch.load(ckpt, map_location=DEVICE))
+    print(f"=== §5 正交性诊断 | transform={transform} T={T} | ckpt={ckpt} ===", flush=True)
+
+    def vscore(cands, kleft):
+        """rl 对候选打分 hand_score + γ·V(afterstate,kleft-1)，返回 (best_idx, best_val, vals)。"""
+        if kleft - 1 == 0:
+            vt = [0.0] * len(cands)
+        else:
+            with torch.no_grad():
+                kn = torch.full((len(cands),), (kleft - 1) / T_MAX, device=DEVICE)
+                vt = decode_vtot(net(board_planes_fast8([b for b, _, _ in cands]),
+                                     torch.tensor([float(c) for _, c, _ in cands], device=DEVICE), kn),
+                                 kleft - 1, transform).tolist()
+        vals = [cands[i][2] + GAMMA * vt[i] for i in range(len(cands))]
+        bi = max(range(len(cands)), key=lambda i: vals[i])
+        return bi, vals[bi]
+
+    n_eval = n_cut = n_skip = n_diff = 0
+    vgaps = []
+    for r in range(n_rollouts):
+        rng = random.Random(f"ortho-{r}")
+        board, combo = 0, 0
+        for i in range(T):
+            kdec = T - i                                   # 此刻面对新手，剩 kdec 轮
+            hand = eng.sample_hand(rng)
+            beam = eng.round_candidates(board, combo, hand)   # top-B=12（rl 实际可选集）
+            if not beam:
+                break
+            # 仅在中局诊断（i≥8，棋盘渐满→full 枚举可控）；早盘 full 太大跳过统计但继续推进
+            if i >= 8 and kdec >= 2:
+                full = _full_afterstates(eng, board, combo, hand, cap)
+                if full is None:
+                    n_skip += 1
+                elif full:
+                    n_eval += 1
+                    bi_b, v_b = vscore(beam, kdec)
+                    bi_f, v_f = vscore(full, kdec)
+                    beam_keys = {(b, c) for b, c, _ in beam}
+                    pick_full = (full[bi_f][0], full[bi_f][1])
+                    if pick_full not in beam_keys:
+                        n_cut += 1                          # rl 的 full-偏好落点不在 beam top-B 里
+                    if pick_full != (beam[bi_b][0], beam[bi_b][1]):
+                        n_diff += 1
+                    vgaps.append(v_f - v_b)                 # rl 自身 V 看：full 最优比 beam 最优高多少
+            # 用 strong 推进 rollout（采的是 strong 触及的中局分布）
+            sc, board, combo, alive = eng.fast.strong_hand(board, combo, hand, B=eng.beam_B)
+            if not alive:
+                break
+
+    cut_frac = n_cut / n_eval if n_eval else 0.0
+    diff_frac = n_diff / n_eval if n_eval else 0.0
+    mean_vgap = sum(vgaps) / len(vgaps) if vgaps else 0.0
+    # vgap 相对量纲：用 beam 最优 V 的典型量级归一（粗略，仅 advisory）
+    res = {"transform": transform, "T": T, "GAMMA": GAMMA, "n_eval": n_eval, "n_skip_cap": n_skip,
+           "cut_frac": cut_frac, "argmax_diff_frac": diff_frac, "mean_vgap_full_minus_beam": mean_vgap,
+           "verdict": "POOL_FAIR" if cut_frac < 0.10 else "POOL_BIASED"}
+    print(f"\n[ortho] === §5 VERDICT (n_eval={n_eval}, skip_cap={n_skip}) ===", flush=True)
+    print(f"  beam 裁掉 rl-full-偏好落点比例 cut_frac={cut_frac:.2%}  (阈<10% ⇒ 池公平)", flush=True)
+    print(f"  full vs beam argmax 不同比例={diff_frac:.2%}  mean V_gap(full-beam)={mean_vgap:.2f}", flush=True)
+    print(f"  → {res['verdict']}（POOL_FAIR ⇒ RL≪strong 非同源候选池假象，负结果稳健）", flush=True)
+    try:
+        allres = json.load(open(out_json, encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        allres = {}
+    allres[transform] = res
+    json.dump(allres, open(out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    print(f"-> wrote {out_json}", flush=True)
+    return res
+
+
+# ====================================================================
 # §3.0 迁移 gate：rl8 CNN+buffer+rate 变换 在 4×4 引擎复现 bdp_T，rel<5% 才放行
 # ====================================================================
 def migration_gate(**train_kw):
@@ -716,11 +1264,16 @@ if __name__ == "__main__":
         print(json.dumps(res, ensure_ascii=False, indent=2), flush=True)
     elif mode in ("train8", "check8"):
         # 8×8 生产 horizon：把 T_MAX 设为 HORIZON_T（默认 50），网络 k 归一化用之。
+        import os
         T_MAX = int(sys.argv[3]) if len(sys.argv) > 3 else 50
-        GAMMA = 0.95            # 补20：8×8 γ-折扣训练稳定器（无折扣 T=50 发散）。判强/天花板仍用无折扣实战得分。
+        # 补20：8×8 γ-折扣训练稳定器（无折扣 T=50 发散）。判强/天花板仍用无折扣实战得分。
+        # γ 可经 RL8_GAMMA 环境变量覆盖（默认 0.95）；补21+competence 后探更高 γ 治近视早死。
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.95"))
         transform = sys.argv[2] if len(sys.argv) > 2 else "logv"
         print(f"[8×8] GAMMA={GAMMA}（训练稳定器；rollout 实战得分仍无折扣累加）", flush=True)
-        ckpt = f"/tmp/rl8_8x8_{transform}_T{T_MAX}.pt"
+        # γ 编进 ckpt 名防覆盖（0.95 保原名向后兼容）。
+        gtag = "" if abs(GAMMA - 0.95) < 1e-9 else f"_g{int(round(GAMMA*100))}"
+        ckpt = f"/tmp/rl8_8x8_{transform}_T{T_MAX}{gtag}.pt"
         if mode == "train8":
             # §3.6★ 候选变换在 8×8 训到 plateau（off-policy 补采覆盖尾部）。可断点续训。
             print(f"=== 8×8 mode-T 训练 | transform={transform} T_MAX={T_MAX} | ckpt={ckpt} ===", flush=True)
@@ -746,3 +1299,71 @@ if __name__ == "__main__":
             M = int(sys.argv[4]) if len(sys.argv) > 4 else 2000
             nprobes = int(sys.argv[5]) if len(sys.argv) > 5 else 32
             selfcons_highk(transform, ckpt, hidden=128, M=M, n_probes=nprobes)
+    elif mode == "compete":
+        # §5/§6 Phase 3：rl-greedy-on-V vs strong（CRN 配对）= 最强策略 verdict。
+        # 用法：python rl8.py compete [transform=rate] [T=50] [M_eval=2000]
+        import os
+        transform = sys.argv[2] if len(sys.argv) > 2 else "rate"
+        T_MAX = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.95"))   # 与 train8 一致；RL8_GAMMA 覆盖
+        M_eval = int(sys.argv[4]) if len(sys.argv) > 4 else 2000
+        beam_B = int(sys.argv[5]) if len(sys.argv) > 5 else 12
+        gtag = "" if abs(GAMMA - 0.95) < 1e-9 else f"_g{int(round(GAMMA*100))}"
+        ckpt = f"/tmp/rl8_8x8_{transform}_T{T_MAX}{gtag}.pt"
+        # B≠12 写独立 JSON 防覆盖基线（§5 disambiguation）
+        oj = "rl8_competence.json" if beam_B == 12 else f"rl8_competence_B{beam_B}.json"
+        print(f"[8×8] GAMMA={GAMMA} beam_B={beam_B}（选点折扣；判强用无折扣实战得分）", flush=True)
+        res = competence_gate(transform, ckpt, hidden=128, T=T_MAX, M_eval=M_eval,
+                              beam_B=beam_B, out_json=oj)
+        print(f"\n-> competence VERDICT = {res['verdict']}", flush=True)
+    elif mode == "trainpi":
+        # 近似策略迭代修早死：python rl8.py trainpi [transform=rate] [T=50] [n_outer=6]
+        # 默认从 g98 网络热启、γ=0.98；训完自动 competence 评估对比 strong。
+        import os
+        transform = sys.argv[2] if len(sys.argv) > 2 else "rate"
+        T_MAX = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+        n_outer = int(sys.argv[4]) if len(sys.argv) > 4 else 6
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.98"))
+        gtag = "" if abs(GAMMA - 0.95) < 1e-9 else f"_g{int(round(GAMMA*100))}"
+        seed_ckpt = f"/tmp/rl8_8x8_{transform}_T{T_MAX}{gtag}.pt"
+        if not os.path.exists(seed_ckpt):
+            seed_ckpt = None
+        print(f"[8×8] GAMMA={GAMMA} trainpi n_outer={n_outer} seed={seed_ckpt}", flush=True)
+        out = train_onpolicy(transform, T=T_MAX, n_outer=n_outer, seed_ckpt=seed_ckpt)
+        res = competence_gate(transform, out["ckpt"], hidden=128, T=T_MAX,
+                              M_eval=2000, out_json="rl8_competence_pi.json")
+        print(f"\n-> PI competence VERDICT = {res['verdict']}  rl_mean={res['rl_mean']:.1f} "
+              f"(vs strong {res['strong_mean']:.1f})", flush=True)
+    elif mode == "play":
+        # 最强策略演示：python rl8.py play [seed=0] [S=30] [ckpt=models/strongest_v.pt]
+        import os
+        T_MAX = 50
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.98"))
+        seed = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        S = int(sys.argv[3]) if len(sys.argv) > 3 else 30
+        ckpt = sys.argv[4] if len(sys.argv) > 4 else "models/strongest_v.pt"
+        play_game(ckpt, seed=seed, T=50, D=2, S=S, B=12, transform="rate", show=True)
+    elif mode == "vbench":
+        # 价值引导前瞻对比：python rl8.py vbench [transform=rate] [T=50] [M=200] [ckpt_tag=pi|g98|g95]
+        import os
+        transform = sys.argv[2] if len(sys.argv) > 2 else "rate"
+        T_MAX = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+        M = int(sys.argv[4]) if len(sys.argv) > 4 else 200
+        tag = sys.argv[5] if len(sys.argv) > 5 else "pi"
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.98"))
+        ckpt = {"pi": f"/tmp/rl8_8x8_{transform}_T{T_MAX}_pi.pt",
+                "g98": f"/tmp/rl8_8x8_{transform}_T{T_MAX}_g98.pt",
+                "g95": f"/tmp/rl8_8x8_{transform}_T{T_MAX}.pt"}.get(tag, tag)
+        print(f"[8×8] GAMMA={GAMMA} vbench ckpt={ckpt}", flush=True)
+        vbench(transform, ckpt, hidden=128, T=T_MAX, M=M)
+    elif mode == "ortho":
+        # §5 正交性诊断：用法 python rl8.py ortho [transform=rate] [T=50] [n_rollouts=12]
+        import os
+        transform = sys.argv[2] if len(sys.argv) > 2 else "rate"
+        T_MAX = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+        GAMMA = float(os.environ.get("RL8_GAMMA", "0.95"))
+        nroll = int(sys.argv[4]) if len(sys.argv) > 4 else 12
+        gtag = "" if abs(GAMMA - 0.95) < 1e-9 else f"_g{int(round(GAMMA*100))}"
+        ckpt = f"/tmp/rl8_8x8_{transform}_T{T_MAX}{gtag}.pt"
+        print(f"[8×8] GAMMA={GAMMA}", flush=True)
+        orthogonality_diag(transform, ckpt, hidden=128, T=T_MAX, n_rollouts=nroll)

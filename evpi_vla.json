@@ -1,0 +1,263 @@
+{
+  "N": 120,
+  "D_oracle": 3,
+  "Ts": [
+    40,
+    50,
+    60
+  ],
+  "vla_cfg": {
+    "D": 2,
+    "S": 30,
+    "B": 12,
+    "ckpt": "models/strongest_v.pt",
+    "hidden": 128,
+    "T_MAX": 50
+  },
+  "T40": {
+    "surv": {
+      "strong": 0.7083333333333334,
+      "blind": 0.5583333333333333,
+      "seer": 1.0,
+      "vla": 0.625
+    },
+    "score_median_full": {
+      "strong": 2077.5,
+      "blind": 2333.0,
+      "seer": 3704.0,
+      "vla": 2642.0
+    },
+    "cohort3_n": 54,
+    "cohort4_n": 39,
+    "vla_deaths_in_cohort3": 15,
+    "score_median_cohort4": {
+      "strong": 2208.0,
+      "blind": 2698.0,
+      "seer": 3580.0,
+      "vla": 2788.0
+    },
+    "share_strong_denom_cohort3_SANITY": {
+      "median": 0.6899038461538461,
+      "ci": [
+        0.5251798561151079,
+        0.7330184435447593
+      ],
+      "n_valid": 54,
+      "n_cohort": 54
+    },
+    "share_strong_denom_cohort4": {
+      "median": 0.6490384615384616,
+      "ci": [
+        0.4818181818181818,
+        0.7456140350877193
+      ],
+      "n_valid": 39,
+      "n_cohort": 39
+    },
+    "share_vla_denom_cohort4_PRIMARY": {
+      "median": 1.0897435897435896,
+      "ci": [
+        0.9864864864864865,
+        1.2666666666666666
+      ],
+      "n_valid": 37,
+      "n_cohort": 39
+    },
+    "raw_gap_seer_strong_cohort4": {
+      "mean": 1356.923076923077,
+      "median": 1390.0,
+      "median_ci": [
+        1200.0,
+        1530.0
+      ]
+    },
+    "raw_gap_seer_vla_cohort4": {
+      "mean": 754.3589743589744,
+      "median": 740.0,
+      "median_ci": [
+        600.0,
+        910.0
+      ]
+    },
+    "EVPI_seer_blind_cohort4": {
+      "mean": 835.3846153846154,
+      "median": 790.0,
+      "median_ci": [
+        680.0,
+        900.0
+      ]
+    },
+    "procedure_vla_blind_minus_vla_cohort4": {
+      "mean": -81.02564102564102,
+      "median": -80.0,
+      "median_ci": [
+        -220.0,
+        10.0
+      ]
+    }
+  },
+  "T50": {
+    "surv": {
+      "strong": 0.6416666666666667,
+      "blind": 0.44166666666666665,
+      "seer": 1.0,
+      "vla": 0.5083333333333333
+    },
+    "score_median_full": {
+      "strong": 2561.5,
+      "blind": 2788.5,
+      "seer": 4764.5,
+      "vla": 3214.0
+    },
+    "cohort3_n": 41,
+    "cohort4_n": 26,
+    "vla_deaths_in_cohort3": 15,
+    "score_median_cohort4": {
+      "strong": 2703.0,
+      "blind": 3249.5,
+      "seer": 4395.0,
+      "vla": 3459.5
+    },
+    "share_strong_denom_cohort3_SANITY": {
+      "median": 0.6474820143884892,
+      "ci": [
+        0.543859649122807,
+        0.7114093959731543
+      ],
+      "n_valid": 41,
+      "n_cohort": 41
+    },
+    "share_strong_denom_cohort4": {
+      "median": 0.632024566790963,
+      "ci": [
+        0.5232558139534884,
+        0.7087409783480352
+      ],
+      "n_valid": 26,
+      "n_cohort": 26
+    },
+    "share_vla_denom_cohort4_PRIMARY": {
+      "median": 1.063836898395722,
+      "ci": [
+        0.8741862713503061,
+        1.3711748633879783
+      ],
+      "n_valid": 26,
+      "n_cohort": 26
+    },
+    "raw_gap_seer_strong_cohort4": {
+      "mean": 1832.3076923076924,
+      "median": 1760.0,
+      "median_ci": [
+        1610.0,
+        2010.0
+      ]
+    },
+    "raw_gap_seer_vla_cohort4": {
+      "mean": 1047.6923076923076,
+      "median": 1035.0,
+      "median_ci": [
+        720.0,
+        1225.0
+      ]
+    },
+    "EVPI_seer_blind_cohort4": {
+      "mean": 1133.076923076923,
+      "median": 1200.0,
+      "median_ci": [
+        950.0,
+        1340.0
+      ]
+    },
+    "procedure_vla_blind_minus_vla_cohort4": {
+      "mean": -85.38461538461539,
+      "median": -55.0,
+      "median_ci": [
+        -280.0,
+        75.0
+      ]
+    }
+  },
+  "T60": {
+    "surv": {
+      "strong": 0.6083333333333333,
+      "blind": 0.4083333333333333,
+      "seer": 1.0,
+      "vla": 0.475
+    },
+    "score_median_full": {
+      "strong": 3091.5,
+      "blind": 2898.0,
+      "seer": 5802.0,
+      "vla": 3756.0
+    },
+    "cohort3_n": 34,
+    "cohort4_n": 20,
+    "vla_deaths_in_cohort3": 14,
+    "score_median_cohort4": {
+      "strong": 3387.0,
+      "blind": 4120.5,
+      "seer": 5666.5,
+      "vla": 4160.0
+    },
+    "share_strong_denom_cohort3_SANITY": {
+      "median": 0.574308878661343,
+      "ci": [
+        0.5254245923913043,
+        0.7164208074534162
+      ],
+      "n_valid": 34,
+      "n_cohort": 34
+    },
+    "share_strong_denom_cohort4": {
+      "median": 0.5557308970099668,
+      "ci": [
+        0.5138574548342267,
+        0.7651785714285715
+      ],
+      "n_valid": 20,
+      "n_cohort": 20
+    },
+    "share_vla_denom_cohort4_PRIMARY": {
+      "median": 0.9598586017282011,
+      "ci": [
+        0.7777168234064786,
+        1.344449319877139
+      ],
+      "n_valid": 20,
+      "n_cohort": 20
+    },
+    "raw_gap_seer_strong_cohort4": {
+      "mean": 2219.0,
+      "median": 2250.0,
+      "median_ci": [
+        2070.0,
+        2405.0
+      ]
+    },
+    "raw_gap_seer_vla_cohort4": {
+      "mean": 1426.5,
+      "median": 1345.0,
+      "median_ci": [
+        1175.0,
+        1680.0
+      ]
+    },
+    "EVPI_seer_blind_cohort4": {
+      "mean": 1384.0,
+      "median": 1315.0,
+      "median_ci": [
+        1075.0,
+        1695.0
+      ]
+    },
+    "procedure_vla_blind_minus_vla_cohort4": {
+      "mean": 42.5,
+      "median": 55.0,
+      "median_ci": [
+        -290.0,
+        280.0
+      ]
+    }
+  }
+}

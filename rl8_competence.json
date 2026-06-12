@@ -1,0 +1,45 @@
+{
+  "rate": {
+    "transform": "rate",
+    "T": 50,
+    "GAMMA": 0.98,
+    "ckpt": "/tmp/rl8_8x8_rate_T50_g98.pt",
+    "M_cal": 300,
+    "M_eval": 2000,
+    "DELTA_EQ": 123.12283333333333,
+    "strong_mean_cal": 2462.4566666666665,
+    "sigma_diff_cal": 1242.9020622895841,
+    "tost_power_ok": true,
+    "rl_mean": 1888.1485,
+    "strong_mean": 2377.9215,
+    "greedy_mean": 688.5565,
+    "rl_survival_mean": 32.98,
+    "strong_survival_mean": 43.1025,
+    "rl_minus_strong": {
+      "mean": -489.773,
+      "block_se": 27.968885329951927,
+      "ci95": [
+        -545.8875,
+        -433.4885
+      ],
+      "ci90": [
+        -536.376,
+        -442.388
+      ]
+    },
+    "rl_minus_greedy": {
+      "mean": 1199.592,
+      "block_se": 29.181416177652054,
+      "ci95": [
+        1148.21,
+        1249.3055
+      ],
+      "ci90": [
+        1157.166,
+        1239.166
+      ]
+    },
+    "verdict": "RL≪strong",
+    "wall_s": 254.83817839622498
+  }
+}

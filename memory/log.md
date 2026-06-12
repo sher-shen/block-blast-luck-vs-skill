@@ -265,3 +265,83 @@
 - γ=0.95 probe（60 sweep, 小 buffer）：v8 sweep60=261（vs 无折扣 rate 同期 1083，**~4× 更低、爬升更慢**）→ γ 在压增长，符合理论（γ 把无界 ε/(1−γ)→有限 20ε，有界不动点）。loss 仍大但未爆。
 - 小注：v16/v8≈2.0（非 γ 收敛态的 ~1.66）→ net 尚未学到 k-曲率（早期正常，不影响策略 ranking）。60 sweep 太短看不到 plateau。
 - → 上**全程 γ=0.95 rate 训练**（cold start）验是否 plateau 到有界 sane 值（v8 预期 ~800-1000）而非顶 clamp。这是 γ 路线的决定性测试。
+
+### 续13（★★换机[Windows/RTX4060]接续 + RL 线收口 + 用户重定向"造最强策略" → 价值引导前瞻交付，2026-06-03/04）
+> 详见原子文件 [strongest_policy.md](strongest_policy.md)。本条 = 时间线。
+- **环境**：新机 Windows11 + RTX4060。适配：rl8.py:36 DEVICE 加 cuda 优先（原只认 MPS→会白回退 CPU）；py3.12 venv + torch2.6.0+cu124；`/tmp`→`C:\tmp`；print 含 U+2212/≪≫≈ 在 GBK 控制台炸 → 改 ASCII + `PYTHONIOENCODING=utf-8` + json `open(encoding=utf-8)`。后台任务 cwd 会重置回 c:\，启动命令须显式 cd 进 repo。
+- **γ 路线决定性测试 PASS**：全程 γ=0.95 rate 冷启 → **干净 plateau v8=271**（sweep187，rel0.49%，有界、远未顶 clamp、无 NaN）→ 证 γ-收缩保证有界收敛（补20 确诊的无折扣发散被治）。γ=0.98 同样干净 plateau v8=481（未发散）。RTX4060 ~24s/sweep、76min/全程。
+- **competence_gate 落地**（rl8.py 新增；§5/§6）：rl-greedy-on-V vs strong，固定 T=50 CRN 配对、预注册 Δ_eq=0.05×strong均值、TOST、16-block-SE、bootstrap CI。**γ=0.95: rl=1832 vs strong=2378 → RL≪strong**；γ=0.98: rl=1888 → 仍 RL≪strong。**诊断关键：落后 100% 来自存活**（rl 活31.6轮 vs strong43.1，但 rl 每轮分57.9≥strong55.2=不输）。
+- **γ-近视 confound 证否**：0.95→0.98（远期权重0.08→0.36，×4.5）只补回 10%（56/545）差距、存活只+1.4轮 → **负结果不是 γ 近视产物**。
+- **§5 正交性诊断 + B=200 disambiguation（决定性）**：ortho 报 cut_frac=90%（beam top-12 在90%中局态裁掉 rl-V-full-偏好落点）= POOL_BIASED，但**歧义**（beam handicap? 还是 V 在 OOD 瞎报?）。判别 = 给 rl+strong 都 B=200 大池重跑 competence：**rl 暴跌 1888→841（跌到 greedy 水平），差距 −490→−1581** → 解读 B 坐实：**beam 剪枝是帮 rl 的拐杖，rl 的 V 一放开就专挑 OOD 高估态崩。RL≪strong 稳健、非池假象**。
+- **★用户重定向**：目标 = "训练出得分最高的策略"，旧 RL 不够强。**转向 strongest-policy**（不拘是否 RL）。
+- **搜索是核心杠杆**（bench_players.py，torch-free，CRN 擂台 M=200）：纯前瞻 lookahead（beam+未来牌蒙特卡洛）**D3 S20=2842** ≫ strong2364；加宽 beam(B64)无用；**S↑（降方差）是分数旋钮**（D2 S10→S20:+186）。
+- **★on-policy 策略迭代修早死**（train_onpolicy + CLI trainpi）：从 g98 热启，交替"贪心策略收集途经态↔在含这些态+strong/seer锚点的 buffer 上重训 V"（修分布漂移=OOD高估根因）。6 outer×30sweep。**纯 greedy-on-V: 1888→2353 = RL≈strong**（TOST 90%CI[−74,28]⊂±123 等价）。修好早死。
+- **★价值引导前瞻 = 最终交付**（play_vlookahead/best_move/vbench；训练V+搜索=AlphaZero思路）：每候选末态 S 条 D-手 greedy rollout + 学习 V 接尾值。**vla D2 S30 + PI-V = ~2950**（M=200，比 strong+25%、比旧RL+56%，存活41）。S30 封顶（S40 不再涨）；D2 最佳（D3 反降）。落地：`models/strongest_v.pt` + `rl8.py play` 演示 + STRONGEST_POLICY.md。落点还原已验证 0 mismatch。
+- **★调研更强方法（2048/Tetris/AlphaZero SOTA，详见 strongest_policy.md「更强方法」节）**：2048 SOTA=**n-tuple网络+TD/TC学习+expectimax**（n-tuple 远胜 CNN 作 V；expectimax 比 MC-rollout 低方差）；Tetris SOTA=**CEM 调手工特征**（Dellacherie，~35M lines，碾压梯度RL）；AlphaZero 单人随机=expectimax 树（state+chance 节点）。**下一步候选**：换 n-tuple V / expectimax 搜索 / CEM 特征基线。
+- **未做的评测维度**（诚实）：只对内部 player 集比、未对文献 SOTA（n-tuple/CEM/expectimax）；未跨 T/发牌分布/尾部；未对 seer 上界量化"离完美前瞻多远"。
+
+### 续14（★★CEM-Dellacherie 落地 → 结构性天花板诊断 + 路线图重排序，2026-06-04）
+> 详见 [strongest_policy.md](strongest_policy.md)「CEM 落地结果」节。本条=时间线。用户拍板：三方法里 **CEM 先**(根治自举病根+补独立强基线+工程最轻)，**两角色都要**(先独立玩家→再塞搜索)。
+- **新文件 `cem.py`**（torch-free，import fast；守"torch 只在 rl8/rl4"）：8 维位运算特征线性评估 + CEM 黑盒优化(直接调实战分，**不自举**=免疫 CNN-V 的 OOD 高估)。32 核并行。训练流 `cem-train-{gen}`、报告流 `bench` tag(=rl8 vbench/bench_players 同流)→ 防泄漏。CLI: smoke/train/bench/look/perseed/pair/play。模型 `models/cem_w.json`。
+- **★工程教训**：CEM 必须在 **beam 玩家**上训(联合放整手)，不能 1-ply greedy。1-ply 调到头仅 ~1000、权重反号(filled 正/空位负)——本游戏须每手放满 3 块连击贯穿，**原子决策=联合放整手**。换 beam(B8,20代)训练后 elite_mean~2630，权重符号转正常(罚 frag/holes/trans，奖 empty_2x2/3x3)。
+- **Phase1 独立玩家**：CEM-beam B12 = **2458±54**(surv45) vs strong 2364：Δ+95、95%CI[−49,+264]=**≈持平/略超**。→ 第一个不自举/可解释/文献级(Tetris CEM)独立强基线，~2400 无前瞻天花板获双方法背书。
+- **Phase2 塞进搜索**：CEM 评估当 lookahead 叶尾值 + heur-greedy rollout 基 + linval 剪枝候选。**CEM-vla D2 S30 = 2917±62**(M=200)。D3 反降、base=cem rollout 反降(2663)、**S40 不再涨=S30 饱和**——全部复现 CNN-vla 的行为。
+- **Phase3 配对裁决**：同流 M=200 per-seed 配对(`cem.py pair`)：**d(CEM−CNN)=−6.0±59.2，95%CI[−205,+205]=TIE**。CEM-vla(2918) 与 CNN-vla(2924) 统计无法区分。
+- **★★决定性诊断（重塑路线图）**：把叶评估从 14万参 CNN 换成 8 权重线性，搜索后得分几乎不动；S 饱和=方差非瓶颈；三条独立路线(strong/CNN/CEM +搜索)全撞 ~2950 → **~2950 是 D2-beam+rollout 搜索族的结构性天花板，非叶质量限制**。推论：**更好的叶(含 n-tuple)破不了墙；只有换搜索能破**。下一步重排序：①改搜索(更强 rollout 基/手级加深，最高潜力) > n-tuple(降级,叶无关) > expectimax(砍,38³不可展开+方差非瓶颈)。
+- **未提交**（守"commit/push 先问"）：cem.py / models/cem_w.json / cem_*.json 均在工作树，待用户确认。
+
+### 续15（beam-rollout 杠杆：讨论 + 独立审核 + 执行计划落盘，2026-06-05）
+> 本条=时间线；杠杆细节见 strongest_policy.md 下一步#1。**未跑实验，只是把唯一破墙杠杆讨论清楚 + 审核 + 写成可执行文件。**
+- **杠杆**：把 lookahead 的 rollout 基策略从弱 1-ply greedy 换成强 **beam 基**（CEM-beam/strong-beam）=唯一可能破 ~2950 结构天花板的方向（search 改进非叶改进）。
+- **★独立 read-only 审核 agent 读码坐实 go/no-go**：log 续14 "base=cem rollout 反降 2663" 的 base 是 **1-ply cem-greedy**（`cem.py:177-195`），**不是 beam → 杠杆活着**（从未真正测过 beam 基）。2663 双重 confound：弱 1-ply 基 + `w`(B_train=8)被当 1-ply 用=off-policy。
+- **算力标定**：M=200 D2S30≈100s（32核），全程分钟级 → 推翻上轮"几小时黑洞"顾虑，"太贵"不再是约束；fail-fast 纪律仍保留。
+- **真风险=off-policy 叶-V 失配**（非算力）→ 隔离变体 A(留叶V)/B(砍叶V) 是让实验无论正负都决定性的关键。
+- **代码改动**（低难度）：`_rollout_leaf` 加 `base=="beam"/"hbeam"` 分支（复用 `cem_hand` 按手 beam）+ `Br`；`play_cem_look` 加 `use_leaf` 开关；CLI 参数化 D/S/B/base/Br/M。
+- **执行计划落盘**：根 **`NEXT_STEP_beam_rollout.md`**（Step0 B-sweep+补 2663/D3 持久化 → Step1 预算中性 S30→S6+beam、M=50、变体 A/B → Step2 仅正信号才 M=200 全量；判读规则表让负结果也决定性）。用户将在新对话照此执行。
+
+### 续16（★★beam-rollout 杠杆实测：负结果 → 结构天花板第二次独立坐实，2026-06-06）
+> 照根 `NEXT_STEP_beam_rollout.md` 执行。**唯一候选破墙杠杆(强 beam rollout 基)实测无效** → ~2990 是 D2-beam+rollout 搜索族真·结构天花板。
+- **代码改动(cem.py，0 回归)**：`_rollout_leaf` 加 `base in {beam,hbeam}` 分支(复用新 `_beam_hand_one`：宽 Br 联合 beam 铺整手；`beam`=linval/`w` 排序[带 off-policy]、`hbeam`=heuristic 排序[无 off-policy])；`play_cem_look` 加 `Br`+`use_leaf`(变体A留叶V / 变体B砍叶V)开关；新 `paircfg`(同流配对裁决) + CLI `look`/`paircfg` 参数化。smoke + M=16 回归：heur/cem 旧路径数值不变。
+- **Step0 天花板交叉检查(M=50)**：B-sweep B12/24/48 = 2990/3015/2974 = **B 饱和**(候选末态宽度非瓶颈)→ 强化"墙在续法/视野"。锚点持久化：base=cem 1-ply=**2663.1**(复现历史 2663 ✓)、D3 S20=2515.9(D3 反降 ✓)；B48 无 not-cand 退化。
+- **Step1 预算中性配对(S30→S6+beam, Br3, M=50, vs base=heur 对照=2990)**：beam-leaf d=−528[−928,−136] WEAKER；beam-noleaf d=−545[−915,−195] WEAKER；hbeam-leaf d=−472[−805,−135] WEAKER；hbeam-noleaf d=−302[−657,+83] TIE。**全 ≤ 对照**。
+- **★un-confound 同-S=30 测(去掉"S6 砍 5× 伤害"混淆，beam 基多花算力, M=50)**：beam(off-policy w)-leaf d=−291[−677,+94] TIE(点估负=off-policy `w` 小害，正应 plan 双重 confound 警告)；**hbeam(无 off-policy)-leaf d=+12[−383,+356] TIE=与对照完全打平**；hbeam-noleaf d=−39[−458,+326] TIE。
+- **判读(命中判读表两行)**：① 变体 A/B 都 ≤ base=heur → **真·结构天花板，第二次独立坐实**(第一次=叶质量 CNN≈线性)；② **hbeam(无 off-policy)也不动**(d=+12)→ 偏置不是瓶颈，强基策略救不了 → 收口。
+- **结论(诚实负结果)**：把 rollout 基从 1-ply greedy 换成强 beam(含无 off-policy 的 hbeam)**不破 ~2990 天花板**。叶-V off-policy 失配假说证否(砍叶V 的变体 B 也不回升)；2663 降分确由 off-policy `w`+弱 1-ply 基共同造成，但同时修好这两点(hbeam+同 S)也只回到打平、不超越。**墙在搜索结构/视野本身(D2-beam+S-rollout 族)，非叶质量、非叶口径、非基策略偏置。** 唯一候选杠杆穷尽 → 破 2990 须换搜索范式(手级加深/加宽=2-手前瞻)，非本族内任何旋钮。
+- **未触发 Step2**(M=200 仅正信号才跑；无正信号)。**未提交**(守"commit/push 先问")：cem.py(本次改动) + cem_look.json / cem_paircfg_*.json(7 新结果)。
+
+### 续17（★★联网调研 + "分数为何这么低"诚实归因：benchmark 定义问题，非策略弱，2026-06-06）
+> 用户质疑"怎么会没有更好策略/是不是没练够/分应该更高"。本条 = 联网核实 + 揭穿分数标尺真相 + 开新方向。**未跑新实验/未改代码**，纯认知 + 路线。
+- **联网调研（WebSearch）= 外面没有更强的现成模型，公开的反而都比我们弱**：
+  - [rfahd1525 RL agent](https://github.com/rfahd1525/Block-Blast-AI-Reinforcement-Learning-Agent)：Masked PPO + 残差 CNN + 64 并行自博弈，自称"专业水平"但**零具体分数**。
+  - [RisticDjordje RL agent](https://github.com/RisticDjordje/BlockBlast-Game-AI-Agent)：DQN/PPO/+masking，作者**自承**"DQN/PPO 都搞不定动作空间、学不会不乱放"。
+  - 各 blockblastsolver 网站 = 截图启发式提示器，非训练模型。
+  - → 公开 Block Blast 强 RL 基本不存在/很弱；真正强方法在近亲游戏(2048=n-tuple+expectimax、Tetris=CEM)，而 **CEM 我们已实现**。"外面有现成更强模型"= 没有，niche 真实再次坐实。
+- **★★关键认知（揭穿"分数低"）= 2950 是 benchmark 定义压出来的，不是策略弱**：
+  1. **计分是自定义假设值**：`scoring.py:7` 白纸黑字 "默认数值(假设，非游戏实测)"(per_cell=1/line_base=10/三角数 clear/combo_unit=50/all_clear=300)。**我们的 2950 ≠ 真实 App 计分**(App 那种几万几十万是另一套公式+无限局)，**不同量纲，不可比**。
+  2. **T=50 封顶**，且 **surv≈42/50 ⇒ 策略平均死在第 42 回合、在撞 50 封顶之前就死了** ⇒ **真正的 binding 约束是"生存"不是"回合上限"**。2950 ≈ 59 分/回合 × 死在 42 回合。
+  3. ⇒ 天花板真身 = **"无前瞻 + 均匀随机发牌下撑不过 ~42 回合"的生存天花板**。"更好叶/更强基都破不了 2950"成立，但 2950 这个数本身被玩具化 benchmark 压小了。
+- **★用户直觉对**：要"更大的分"，杠杆是**改 benchmark 贴近真实游戏**，不是再练模型：
+  (a) **取消 T=50 封顶 → 无限局，主指标改"活多少回合"**(更接近真实游戏；但注意 surv≈42<50 ⇒ 单纯取消封顶分数可能几乎不动，因为它本就先死了——要涨分得真正延长生存)；
+  (b) **审计发牌分布**：我们用**均匀随机**37 型，真实 Block Blast 普遍被疑**非对抗/偏善意发牌**(给好摆的块)→ 若发牌更像真实游戏，生存(与分)会跳升 ⇒ 这是"分数低"最可能的真凶之一；
+  (c) **把计分校准成真实 App 公式**再比。
+- **下一方向落盘**：根 `NEXT_STEP_endless_survival.md`（无限局 + 生存指标 + 发牌分布审计 + 计分校准；先 fresh read-only audit 再跑）。用户将开新对话照此执行。
+- **遗留未提交**(守"commit/push 先问")：cem.py(续16 改动) + cem_*.json(续16 的 7 个) + 续14 起就没提交的 CEM 基线整套(cem.py/models/STRONGEST_POLICY.md 等) + 本次新建 NEXT_STEP_endless_survival.md。
+
+### 续18（★★执行 NEXT_STEP_endless_survival：A/B/C 三步实测 → 推翻续16/17的"生存天花板/2950结构墙"框架，2026-06-06）
+> 照根 `NEXT_STEP_endless_survival.md` 执行；开工先 fresh read-only audit(坐实 scoring 假设值/均匀38/死亡提前返回=生存/CRN 不破)。**用户选: 做 Step C; 只写 memory 不 commit。**
+- **★★Step A —— 无限局(T=500)生存/分布(M=200, 最强 D2 S30 base=heur cand=cem, `endless_survival.py`)**: surv **84.97±4.89**(中位64,p90=186,max500)、total **5954.5±342.7**(max34531)、撞T=500顶仅 **1/200** ⇒ T=500 基本非 binding。**铁证(从T=500自然死回合反推旧T=50封顶)**: T=50 下 **62% 的局撞顶被截断**, 且 `mean(min(surv,50))=42.3` = **历史那个"surv≈42"的真身 = 删失均值, 不是自然死**。
+- **★★ ⇒ 推翻续16/17**: "surv≈42 ⇒ 死在封顶前 ⇒ T=50非binding ⇒ 2950是搜索结构天花板" **错了**——T=50 对多数局 binding(截断62%)，取消封顶 surv 42→85、分 2950→5954(翻倍)。命中计划§4那条"surv远超42⇒旧T=50其实在截断⇒旧结论要修正"。**注**: 续16 beam-rollout 那些**相对**配对比较都在T=50下, 相对排序可能仍成立; 被推翻的是"2950这个绝对数=不可破的墙"这个**解读**, 不是配对结论本身。
+- **★★Step B —— 发牌分布审计(M=100,T=500,CRN配对, `deal_audit.py` inverse-CDF 耦合)**: 发牌确实硬(均值3.82格/块,50%四连,15.8%≥5格,40.3%手含≥5格,7.7%含3x3)。各善意档 Δvs均匀(全极显著 Δ/SE≫2): **去3x3(仅删2.6%块) surv 83→226(×2.7) total→14775(+8962±1200)**; 去≥6格 surv→326 total→19808; 去≥5格 surv→430 total→23911(74%封顶✂); 强偏小块 surv→480(94%✂) total 17278(偏小块=近不死但每回合分少)。**命中计划§4: 偏善意发牌大幅跳升 ⇒ "分低"主因=均匀随机发牌过难, 非策略弱 ⇒ 真实游戏下我们策略会强得多。** 诚实边界: ≥5格/小块档重度撞T=500顶⇒数值=下界; 静态重加权不含"保证可下"等板态相关善意⇒善意发牌下界; rollout仍uniform=策略部署到善意真游戏的真实设定。
+- **Step C —— 计分校准(M=100,T=500, `calibrate_scoring.py`; scoring.py 参数化 assumed vs real_approx)**: real_approx=社区逆向(per_cell=1; 同手消L条bonus表{10,20,60,120,200,300}; board-clear360; 连击**乘法**×(1+(streak-1)×0.5)), 来源blockpuzzlesolver/onlineblockblastsolver, **非官方/各源不一**。结果: assumed/uniform total5814 surv83 → **real/uniform total4100 surv140** → real/no_hard total10275 surv381(56%✂)。**★计分映射倍率 real/assumed=0.71× = 同量级(非10×/100×) ⇒ 计分公式不是"分低"真凶**, 我们假设档若有偏还略偏慷慨。真实App几万分来自**无限局+善意发牌→长生存+持续连击**(=A+B), 非更大的每事件计分尺度。侧观察: real(乘法连击)档下策略重优化为**活更久**(83→140,持续链更值钱)。**CEM特征纯几何⇒权重w与计分无关⇒换档重优化干净(叶评估不失配)。**
+- **★工程坑(记牢)**: Step C 首跑 real/assumed 给出**逐字相同**的5814 ⇒ 发现 **Windows=spawn, ProcessPoolExecutor worker 重新import模块=默认SCORING, 父进程改 cem.SCORING/fast.SCORING 对 worker 无效** → 必须用 `ProcessPoolExecutor(initializer=...)` 在每个 worker 进程内设档。修复后 real≠assumed。**Step A/B 不受此坑影响**(从不换SCORING, 只在父进程改streams当arg传)。
+- **总结论(诚实, 正向修正)**: 用户直觉对——"2950分低"=benchmark定义问题(**T=50封顶[主] + 均匀随机硬发牌[主]**), **非策略弱; 计分公式同量级不是因**。两大机制各约×2~×3叠加把分压小。图: `figures/{endless_survival,deal_audit,calibrate_scoring}.svg`。
+- **本次产物(未提交, 守"先问")**: 新文件 `endless_survival.py`/`deal_audit.py`/`calibrate_scoring.py`/`plot_endless.py`/`plot_deal.py`/`plot_calib.py` + `figures/*.svg`(3新) + `{endless_survival,deal_audit,calibrate_scoring}.json`; **scoring.py 改动**(参数化 clear_table/combo_mode/combo_mult + assumed()/real_approx()工厂; **assumed路径逐字不变, 0回归**, 已smoke验 sp(4,2,cb=2)=134)。续14/16 遗留仍未提交。
+
+### 续19（★目标线② 收口 verdict(i) + 连击豪赌计算器，2026-06-12）
+> 用户"继续 Block Blast 项目"。执行 MEMORY 里"未结链路①"= 用 vla(2924) 当 EVPI 占比新分母在冻结 cohort 重算（ROADMAP 预注册 verdict(i)）+ 配套"连击豪赌计算器"。只写 memory/产物，未 commit（守"先问"）。
+- **★verdict(i) 命中（`evpi_vla.py`→`evpi_vla.json`，图`figures/evpi_vla.svg`）**：三 oracle 玩家用 oracle_analysis 原函数重跑（同种子确定性）⇒ **strong-分母 cohort3 占比逐点复现 channelB 的 69/65/57%（n=54/41/34）= 自洽 sanity，重跑可信**。vla 喂同一 `_deal_stream(seed)` 严格 CRN，T_MAX=50。cohort4={strong,blind,seer,**vla** 都活到T} 冻结。**占比(vla 分母)= 109/106/96%（T40/50/60），从 69/65/57% 抬到 ≈100%**；同 cohort4 上 strong-分母仅 65/63/56% ⇒ **抬升来自换分母本身非 cohort 变化**。分数阶梯 T50 cohort4 中位：strong2703<blind3250<**vla3460**<seer4395。
+- **含义**：面对最强可玩"无真未来"策略 vla，到完美前瞻 oracle 的残差缺口**几乎全是不可约运气(信息价值)**，可学的过程/技能通道已被 vla 吃满。**占比 >100% 不是 bug 是信号**：vla 本身就是比 blind 更强的边缘化器（T40/T50 vla>blind +81/+85），procedure(blind−vla)<0 ⇒ seer−vla<seer−blind ⇒ 占比>100%；≈100% 的读法="残差≈纯 EVPI"。
+- **诚实边界**：cohort4 小(39/26/20，要求 vla 也活)⇒ CI 宽跨100%，尤其 T60(n=20，vla 略逊 blind −42 噪声内)。**方向性结论（占比对在线强度单调上偏、随天花板变强而升）稳；点值 ≈100% 带宽 CI**。未触 n=25 主 headline、未改 channelB 原结论；这是预注册三选一 (i) 的兑现。
+- **★连击豪赌计算器（`combo_gamble.py`→`combo_gamble.json`/`_calc.json`，图`figures/combo_gamble.svg`）**：combo=每放置触发消除则+1、任一次不消清零、奖励随层级超线性=press-your-luck 赌局，是本游戏高方差(运气重)物理来源。**(A) 解析**：几何闭式 `G(C,p)=u·p/(1−p)·[(C−1)+1/(1−p)]`（assumed u=combo_unit=50；real_approx mult u=clear_points(L̄)·0.5），保连击溢价 `ΔG(C,p)=u·C+G(C+1,p)−G(0,p)`=愿付棋盘代价上限+break-even p。**(B) strong 实测**（`beam_hand_path` 复刻逐块落点+逐次重放 score_placement）：**p_maintain=0.44，combo 奖励占总分=53%**(超线性=运气引擎)，L̄=1.03(几乎单条)，连击链均长1.52/最长6/87%≤2(长连击罕见)，**p_maintain 按层级 0.52→0.40→0.26→0.20→0.16(速降)**。
+- **★核心诚实发现**：常数-p 几何模型**高估深连击赌局 2–5×**（G_const(C=3)=150 vs **G_emp(衰减p)=38，4×**），因真实维持概率随层级急降。**统一结论**：combo 占分 53% 但价值来自**大量短链非英雄式长连击；刻意追深连击是亏本押注**（每多一层既要消除又恶化棋盘→下步维持掉到0.16）。两条互补皆真。
+- **产物(未提交)**：`evpi_vla.py`/`plot_evpi_vla.py`/`combo_gamble.py`/`plot_combo_gamble.py`/`EVPI_VLA_RESULTS.md` + `evpi_vla.json`/`combo_gamble.json`/`combo_gamble_calc.json` + `figures/{evpi_vla,combo_gamble}.svg`。续14/16/18 遗留仍未提交；commit/push 待用户 go。

@@ -1,0 +1,13 @@
+{
+  "rate": {
+    "transform": "rate",
+    "T": 50,
+    "GAMMA": 0.98,
+    "n_eval": 386,
+    "n_skip_cap": 4,
+    "cut_frac": 0.8963730569948186,
+    "argmax_diff_frac": 0.8963730569948186,
+    "mean_vgap_full_minus_beam": 112.81025750352927,
+    "verdict": "POOL_BIASED"
+  }
+}

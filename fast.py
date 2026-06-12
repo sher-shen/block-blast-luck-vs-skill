@@ -129,6 +129,31 @@ def beam_hand(board, combo, hand, B=12):
     return [(b, c, sc) for (b, c, sc, _) in states]
 
 
+def beam_hand_path(board, combo, hand, B=12):
+    """同 beam_hand，但每候选末态附带**落点路径** path=[(hand_idx, mask), ...]（3 块的放置顺序与掩码）。
+    供"可用工具"把推荐还原成具体落点。返回 top-B [(board,combo,score,path)]。"""
+    states = [(board, combo, 0, [])]
+    for _ in range(3):
+        cand = []
+        for (b, c, sc, path) in states:
+            placed = {i for i, _ in path}
+            for i in range(3):
+                if i in placed:
+                    continue
+                pid = hand[i]
+                for m in PLACE[pid]:
+                    if b & m:
+                        continue
+                    nb, cl, empty = apply_mask(b, m)
+                    pts, nc = score_placement(SCORING, NCELLS[pid], cl, empty, c)
+                    cand.append((nb, nc, sc + pts, path + [(i, m)]))
+        if not cand:
+            return []
+        cand.sort(key=lambda s: s[2] + heuristic(s[0]), reverse=True)
+        states = cand[:B]
+    return states
+
+
 def strong_hand(board, combo, hand, rng=None, B=12):
     res = beam_hand(board, combo, hand, B)
     if not res:

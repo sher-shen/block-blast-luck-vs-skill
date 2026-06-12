@@ -35,14 +35,18 @@
 6. `raw=EVPI+procedure` 是**代数恒等**，别吹成"发现"，报"缺口如何切分"。
 
 ## 最终落地数字（N=120, D=3, 已 push commit 900d63b）
-- **通道A 存活**：seer 死亡 hazard ≤ **7e-5/轮**(14365轮1死)；strong 存活 .91→.38(t20→120)，blind 更差(.20)。
+- **通道A 存活**：seer 死亡 hazard **点估计 7e-5/轮**(14365轮1死；单侧 95% Poisson 上界 **3.3e-4/轮**——勿写"≤7e-5"，那是点估计非界)；strong 存活 .91→.38(t20→120)，blind 更差(.20)。
 - **通道B EVPI**：T=40(cohort54) EVPI **943 [816,1082]**, raw1442, 信息占比 **69%**；
   T=60(cohort34) EVPI **1427 [1221,1662]**, raw2281, 占比 **57%** → 报范围 **57–69%**(随 T 变，非定值)。
 - S-stability：EVPI 随 S∈{4,8,16,32}=1080/930/940/1060，~±10% 噪声内平 → S=8 够。
 - D-sweep：seer 存活 D=3 即饱和 1.00，分数 D=3≈D=5(7851/7844) → D=3 plateau。
 - 已撤回 results.json 的 oracle_gap_ratio(留 oracle_RETRACTED 说明)；新数据 survival.json/channelB.json/sstab.json。
 
-## 已发布结论的可靠性修正（续6 三轮审核 Part A 抓出，待落地）
+## 已发布结论的可靠性修正（续6 三轮审核 Part A 抓出）—— ✅ 已全部落地（commit `7d90211`，2026-05-31）
+> 落地证据：hazard Poisson 上界已进 survival.json/README；占比 CI + 第3个T(50) 已进 channelB.json
+> （57–69% 现为 T=40/50/60 三点 + bootstrap CI）；sstab 已改固定 intersection cohort（sstab.json:
+> fixed_cohort_n=24，EVPI_med 1085/980/1055/1065 仍平 → S-稳定真实成立）；dp4 γ docstring 不一致已在
+> rl8 Phase 0 修（0.99→0.95）。下文保留作"当时抓出什么"的记录：
 - **通道A hazard 只基于 1 次死亡**（seed94 @round85，1死/14365在险轮）。"≤7e-5/轮"是**点估计**不是界。
   须并报 **Poisson 单侧 95% 上界 = 3.30e-4/轮（≤1死/~3028轮）**；"seer≤真最优"是另一条**建模**界，与采样 CI 分开陈述。定性结论(有前瞻几乎不死)稳，只是数字要 CI。
 - **EVPI 占比**：(a) 须报**占比比值本身的 bootstrap CI**（现仅 EVPI level 有 CI）；(b) 加第3个 T(如50/80)，"57–69%"现是 2 点线段；
