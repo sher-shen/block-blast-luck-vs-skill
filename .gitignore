@@ -4,6 +4,7 @@ __pycache__/
 # Hub 内部记忆，不进 repo
 memory/
 *.out
+*_run.log
 .venv/
 LOOP_PROMPT.md
 REVIEW_PROMPT.md

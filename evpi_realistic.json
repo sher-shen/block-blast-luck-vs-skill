@@ -1,0 +1,414 @@
+{
+  "N": 120,
+  "D_oracle": 3,
+  "Ts": [
+    40,
+    50,
+    60
+  ],
+  "axes": {
+    "scoring": [
+      "assumed",
+      "real_approx"
+    ],
+    "dealing": [
+      "uniform",
+      "benevolent"
+    ]
+  },
+  "benevolent_def": "no9 (drop 3x3, mirrors deal_audit)",
+  "conditions": {
+    "assumed_uniform": {
+      "T40": {
+        "surv": {
+          "strong": 0.7083333333333334,
+          "blind": 0.5583333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 2077.5,
+          "blind": 2333.0,
+          "seer": 3704.0
+        },
+        "cohort_n": 54,
+        "score_median_cohort": {
+          "strong": 2154.5,
+          "blind": 2621.0,
+          "seer": 3628.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.6899038461538461,
+          "ci": [
+            0.5256231034130041,
+            0.7330184435447593
+          ],
+          "n_valid": 54,
+          "n_cohort": 54
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 1441.851851851852,
+          "EVPI_seer_blind": 942.9629629629629,
+          "procedure_blind_strong": 498.8888888888889
+        }
+      },
+      "T50": {
+        "surv": {
+          "strong": 0.6416666666666667,
+          "blind": 0.44166666666666665,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 2561.5,
+          "blind": 2788.5,
+          "seer": 4764.5
+        },
+        "cohort_n": 41,
+        "score_median_cohort": {
+          "strong": 2731.0,
+          "blind": 3353.0,
+          "seer": 4427.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.6474820143884892,
+          "ci": [
+            0.543859649122807,
+            0.7114093959731543
+          ],
+          "n_valid": 41,
+          "n_cohort": 41
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 1855.6097560975609,
+          "EVPI_seer_blind": 1180.2439024390244,
+          "procedure_blind_strong": 675.3658536585366
+        }
+      },
+      "T60": {
+        "surv": {
+          "strong": 0.6083333333333333,
+          "blind": 0.4083333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 3091.5,
+          "blind": 2898.0,
+          "seer": 5802.0
+        },
+        "cohort_n": 34,
+        "score_median_cohort": {
+          "strong": 3387.0,
+          "blind": 4111.0,
+          "seer": 5595.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.574308878661343,
+          "ci": [
+            0.5275985054347826,
+            0.7164208074534162
+          ],
+          "n_valid": 34,
+          "n_cohort": 34
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 2281.176470588235,
+          "EVPI_seer_blind": 1426.764705882353,
+          "procedure_blind_strong": 854.4117647058823
+        }
+      }
+    },
+    "assumed_benevolent": {
+      "T40": {
+        "surv": {
+          "strong": 0.9,
+          "blind": 0.8416666666666667,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1991.5,
+          "blind": 2312.0,
+          "seer": 3363.0
+        },
+        "cohort_n": 93,
+        "score_median_cohort": {
+          "strong": 2035.0,
+          "blind": 2334.0,
+          "seer": 3315.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.7411764705882353,
+          "ci": [
+            0.7142857142857143,
+            0.8108108108108109
+          ],
+          "n_valid": 93,
+          "n_cohort": 93
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 1300.752688172043,
+          "EVPI_seer_blind": 969.4623655913979,
+          "procedure_blind_strong": 331.2903225806452
+        }
+      },
+      "T50": {
+        "surv": {
+          "strong": 0.8666666666666667,
+          "blind": 0.8083333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 2519.0,
+          "blind": 2960.0,
+          "seer": 4260.5
+        },
+        "cohort_n": 86,
+        "score_median_cohort": {
+          "strong": 2549.5,
+          "blind": 3024.0,
+          "seer": 4221.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.7679893766598969,
+          "ci": [
+            0.7073170731707317,
+            0.8102914834717473
+          ],
+          "n_valid": 86,
+          "n_cohort": 86
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 1666.3953488372092,
+          "EVPI_seer_blind": 1230.5813953488373,
+          "procedure_blind_strong": 435.8139534883721
+        }
+      },
+      "T60": {
+        "surv": {
+          "strong": 0.85,
+          "blind": 0.7833333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 3057.0,
+          "blind": 3605.5,
+          "seer": 5208.0
+        },
+        "cohort_n": 81,
+        "score_median_cohort": {
+          "strong": 3092.0,
+          "blind": 3685.0,
+          "seer": 5216.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.7521367521367521,
+          "ci": [
+            0.6891891891891891,
+            0.788135593220339
+          ],
+          "n_valid": 81,
+          "n_cohort": 81
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 2077.5308641975307,
+          "EVPI_seer_blind": 1502.469135802469,
+          "procedure_blind_strong": 575.0617283950618
+        }
+      }
+    },
+    "real_approx_uniform": {
+      "T40": {
+        "surv": {
+          "strong": 0.725,
+          "blind": 0.7583333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1106.5,
+          "blind": 1125.5,
+          "seer": 1272.0
+        },
+        "cohort_n": 70,
+        "score_median_cohort": {
+          "strong": 1129.0,
+          "blind": 1140.0,
+          "seer": 1246.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.8727272727272728,
+          "ci": [
+            0.7575757575757576,
+            0.9666666666666667
+          ],
+          "n_valid": 70,
+          "n_cohort": 70
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 123.5,
+          "EVPI_seer_blind": 100.21428571428571,
+          "procedure_blind_strong": 23.285714285714285
+        }
+      },
+      "T50": {
+        "surv": {
+          "strong": 0.6583333333333333,
+          "blind": 0.7,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1378.0,
+          "blind": 1409.5,
+          "seer": 1595.5
+        },
+        "cohort_n": 62,
+        "score_median_cohort": {
+          "strong": 1408.5,
+          "blind": 1432.5,
+          "seer": 1565.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.8571428571428571,
+          "ci": [
+            0.7916666666666666,
+            0.9321646341463414
+          ],
+          "n_valid": 62,
+          "n_cohort": 62
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 162.82258064516128,
+          "EVPI_seer_blind": 132.01612903225808,
+          "procedure_blind_strong": 30.806451612903224
+        }
+      },
+      "T60": {
+        "surv": {
+          "strong": 0.5916666666666667,
+          "blind": 0.675,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1634.5,
+          "blind": 1707.0,
+          "seer": 1921.0
+        },
+        "cohort_n": 52,
+        "score_median_cohort": {
+          "strong": 1697.5,
+          "blind": 1725.0,
+          "seer": 1892.0
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.824904214559387,
+          "ci": [
+            0.7459677419354839,
+            0.9106312292358804
+          ],
+          "n_valid": 52,
+          "n_cohort": 52
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 194.23076923076923,
+          "EVPI_seer_blind": 159.1346153846154,
+          "procedure_blind_strong": 35.09615384615385
+        }
+      }
+    },
+    "real_approx_benevolent": {
+      "T40": {
+        "surv": {
+          "strong": 0.9166666666666666,
+          "blind": 0.9,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1062.5,
+          "blind": 1082.0,
+          "seer": 1189.5
+        },
+        "cohort_n": 100,
+        "score_median_cohort": {
+          "strong": 1074.0,
+          "blind": 1084.0,
+          "seer": 1185.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.9455046649703138,
+          "ci": [
+            0.8461538461538461,
+            1.0458333333333334
+          ],
+          "n_valid": 100,
+          "n_cohort": 100
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 118.35,
+          "EVPI_seer_blind": 109.6,
+          "procedure_blind_strong": 8.75
+        }
+      },
+      "T50": {
+        "surv": {
+          "strong": 0.8833333333333333,
+          "blind": 0.8583333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1350.0,
+          "blind": 1362.5,
+          "seer": 1488.0
+        },
+        "cohort_n": 92,
+        "score_median_cohort": {
+          "strong": 1357.0,
+          "blind": 1367.5,
+          "seer": 1483.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.925,
+          "ci": [
+            0.8444444444444444,
+            1.0
+          ],
+          "n_valid": 92,
+          "n_cohort": 92
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 147.2826086956522,
+          "EVPI_seer_blind": 135.92391304347825,
+          "procedure_blind_strong": 11.358695652173912
+        }
+      },
+      "T60": {
+        "surv": {
+          "strong": 0.8833333333333333,
+          "blind": 0.8583333333333333,
+          "seer": 1.0
+        },
+        "score_median_full": {
+          "strong": 1618.5,
+          "blind": 1640.5,
+          "seer": 1804.0
+        },
+        "cohort_n": 92,
+        "score_median_cohort": {
+          "strong": 1628.0,
+          "blind": 1647.0,
+          "seer": 1802.5
+        },
+        "EVPI_share_strong_denom": {
+          "median": 0.9347826086956522,
+          "ci": [
+            0.875,
+            0.9706119162640902
+          ],
+          "n_valid": 92,
+          "n_cohort": 92
+        },
+        "decomp_mean": {
+          "raw_seer_strong": 185.3804347826087,
+          "EVPI_seer_blind": 167.9891304347826,
+          "procedure_blind_strong": 17.391304347826086
+        }
+      }
+    }
+  }
+}

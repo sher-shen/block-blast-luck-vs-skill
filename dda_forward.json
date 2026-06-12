@@ -1,0 +1,236 @@
+{
+  "N": 100,
+  "D_oracle": 3,
+  "T": 50,
+  "betas": [
+    -0.2,
+    -0.1,
+    -0.05,
+    0.0,
+    0.05,
+    0.1,
+    0.2,
+    0.3,
+    0.4
+  ],
+  "family": "w_i \u221d exp(-beta*size_i); beta>0=benevolent(small), beta<0=adversarial(big)",
+  "scoring": "assumed",
+  "points": [
+    {
+      "beta": -0.2,
+      "mean_dealt_size": 4.253343871225129,
+      "cohort_n": 6,
+      "surv": {
+        "strong": 0.21,
+        "blind": 0.11,
+        "seer": 0.9
+      },
+      "EVPI_share": {
+        "median": 0.7329004329004329,
+        "ci": [
+          0.5723276609805461,
+          0.985793318294124
+        ],
+        "n_valid": 6,
+        "n_cohort": 6
+      },
+      "score_median_cohort": {
+        "strong": 3450.5,
+        "blind": 3700.5,
+        "seer": 5912.5
+      }
+    },
+    {
+      "beta": -0.1,
+      "mean_dealt_size": 4.011516544438684,
+      "cohort_n": 21,
+      "surv": {
+        "strong": 0.49,
+        "blind": 0.27,
+        "seer": 0.96
+      },
+      "EVPI_share": {
+        "median": 0.7465277777777778,
+        "ci": [
+          0.5612244897959183,
+          0.8024691358024691
+        ],
+        "n_valid": 21,
+        "n_cohort": 21
+      },
+      "score_median_cohort": {
+        "strong": 3067.0,
+        "blind": 3616.0,
+        "seer": 4969.0
+      }
+    },
+    {
+      "beta": -0.05,
+      "mean_dealt_size": 3.9089504498204044,
+      "cohort_n": 31,
+      "surv": {
+        "strong": 0.54,
+        "blind": 0.46,
+        "seer": 0.97
+      },
+      "EVPI_share": {
+        "median": 0.6713780918727915,
+        "ci": [
+          0.5633187772925764,
+          0.7723577235772358
+        ],
+        "n_valid": 31,
+        "n_cohort": 31
+      },
+      "score_median_cohort": {
+        "strong": 2868.0,
+        "blind": 3507.0,
+        "seer": 4654.0
+      }
+    },
+    {
+      "beta": 0.0,
+      "mean_dealt_size": 3.815789473684214,
+      "cohort_n": 40,
+      "surv": {
+        "strong": 0.76,
+        "blind": 0.51,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.6530586899439359,
+        "ci": [
+          0.6147747747747747,
+          0.7288910042836745
+        ],
+        "n_valid": 40,
+        "n_cohort": 40
+      },
+      "score_median_cohort": {
+        "strong": 2727.0,
+        "blind": 3280.0,
+        "seer": 4506.5
+      }
+    },
+    {
+      "beta": 0.05,
+      "mean_dealt_size": 3.7301928633346577,
+      "cohort_n": 57,
+      "surv": {
+        "strong": 0.76,
+        "blind": 0.68,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.7232704402515723,
+        "ci": [
+          0.6530612244897959,
+          0.7696629213483146
+        ],
+        "n_valid": 57,
+        "n_cohort": 57
+      },
+      "score_median_cohort": {
+        "strong": 2608.0,
+        "blind": 3239.0,
+        "seer": 4303.0
+      }
+    },
+    {
+      "beta": 0.1,
+      "mean_dealt_size": 3.650571079773648,
+      "cohort_n": 61,
+      "surv": {
+        "strong": 0.8,
+        "blind": 0.7,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.6978021978021978,
+        "ci": [
+          0.6324786324786325,
+          0.7916666666666666
+        ],
+        "n_valid": 61,
+        "n_cohort": 61
+      },
+      "score_median_cohort": {
+        "strong": 2463.0,
+        "blind": 3024.0,
+        "seer": 4250.0
+      }
+    },
+    {
+      "beta": 0.2,
+      "mean_dealt_size": 3.504109708573495,
+      "cohort_n": 78,
+      "surv": {
+        "strong": 0.91,
+        "blind": 0.83,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.6753022452504318,
+        "ci": [
+          0.5813953488372093,
+          0.786046511627907
+        ],
+        "n_valid": 78,
+        "n_cohort": 78
+      },
+      "score_median_cohort": {
+        "strong": 2379.0,
+        "blind": 2885.5,
+        "seer": 3816.0
+      }
+    },
+    {
+      "beta": 0.3,
+      "mean_dealt_size": 3.3682715457822097,
+      "cohort_n": 92,
+      "surv": {
+        "strong": 0.98,
+        "blind": 0.93,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.7098362164151638,
+        "ci": [
+          0.6609258413278514,
+          0.7450980392156863
+        ],
+        "n_valid": 92,
+        "n_cohort": 92
+      },
+      "score_median_cohort": {
+        "strong": 2184.5,
+        "blind": 2621.5,
+        "seer": 3540.0
+      }
+    },
+    {
+      "beta": 0.4,
+      "mean_dealt_size": 3.2378154248032676,
+      "cohort_n": 97,
+      "surv": {
+        "strong": 0.99,
+        "blind": 0.97,
+        "seer": 1.0
+      },
+      "EVPI_share": {
+        "median": 0.6694915254237288,
+        "ci": [
+          0.6428571428571429,
+          0.7692307692307693
+        ],
+        "n_valid": 97,
+        "n_cohort": 97
+      },
+      "score_median_cohort": {
+        "strong": 1981.0,
+        "blind": 2389.0,
+        "seer": 3335.0
+      }
+    }
+  ]
+}
