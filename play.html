@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Block Blast 8×8 — Playable Rule Check</title>
+<style>
+  :root{
+    --cell: 46px;
+    --gap: 4px;
+    --bg:#0d1018; --bg2:#141a26; --panel:#1b2230; --grid:#262f42; --empty:#1d2536;
+    --txt:#eef2f9; --muted:#8693ab; --good:#3ad98a; --bad:#ff5d6c; --accent:#6ea8ff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; color:var(--txt);
+    background:radial-gradient(1200px 600px at 50% -10%, #1c2540 0%, var(--bg) 60%);
+    font-family:"Segoe UI",-apple-system,system-ui,sans-serif;
+    display:flex; flex-direction:column; align-items:center; padding:22px 12px 48px;
+  }
+  h1{font-size:21px; margin:2px 0 2px; font-weight:700; letter-spacing:.2px;}
+  .sub{color:var(--muted); font-size:12.5px; margin-bottom:18px; text-align:center; max-width:580px; line-height:1.6;}
+  .sub b{color:var(--txt);}
+  .top{
+    display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; justify-content:center;
+  }
+  .stat{
+    background:var(--panel); border:1px solid var(--grid); border-radius:12px;
+    padding:10px 18px; text-align:center; min-width:84px;
+  }
+  .stat .v{font-size:25px; font-weight:750; line-height:1;}
+  .stat .l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:5px;}
+  .combo-on{border-color:var(--good);}
+  .combo-on .v{color:var(--good);}
+  #board{
+    display:grid; grid-template-columns:repeat(8, var(--cell));
+    grid-template-rows:repeat(8, var(--cell)); gap:var(--gap);
+    background:linear-gradient(160deg,#222b3e,#171e2c);
+    padding:var(--gap); border-radius:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.04);
+    touch-action:none;
+  }
+  .cell{
+    width:var(--cell); height:var(--cell); border-radius:7px; background:var(--empty);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.35);
+    transition:background .1s, box-shadow .1s;
+  }
+  .cell.filled{
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.22), inset 0 -3px 4px rgba(0,0,0,.28);
+  }
+  .cell.preview-ok{box-shadow:inset 0 0 0 3px var(--good); background:rgba(58,217,138,.16);}
+  .cell.preview-bad{box-shadow:inset 0 0 0 3px var(--bad); background:rgba(255,93,108,.14);}
+  .cell.flash{animation:flash .32s ease;}
+  @keyframes flash{0%{filter:brightness(2.6); transform:scale(1.08);}100%{filter:brightness(1); transform:scale(1);}}
+  #tray{display:flex; gap:26px; margin-top:22px; min-height:150px; align-items:center; justify-content:center;}
+  .piece{
+    padding:12px; border-radius:12px; background:var(--panel);
+    border:1px solid var(--grid); cursor:pointer;
+    display:grid; gap:3px; transition:transform .12s, box-shadow .12s, opacity .15s;
+    user-select:none; touch-action:none;
+  }
+  .piece:hover{transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  .piece.held{box-shadow:0 0 0 3px var(--good); opacity:.4;}
+  .piece.used{opacity:.1; pointer-events:none;}
+  .pc{width:30px; height:30px; border-radius:6px;}
+  .pc.on{box-shadow:inset 0 2px 0 rgba(255,255,255,.22), inset 0 -3px 4px rgba(0,0,0,.25);}
+  .pc.off{background:transparent;}
+  /* piece floating above the pointer while held */
+  #floater{position:fixed; left:0; top:0; pointer-events:none; z-index:50;
+    display:none; gap:var(--gap); opacity:.78; filter:drop-shadow(0 8px 14px rgba(0,0,0,.55));}
+  #floater .fc{width:var(--cell); height:var(--cell); border-radius:7px;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.22), inset 0 -3px 4px rgba(0,0,0,.25);}
+  #floater .fc.off{background:transparent; box-shadow:none;}
+  .controls{margin-top:22px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;}
+  label{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px;}
+  button,select{
+    background:var(--panel); color:var(--txt); border:1px solid var(--grid);
+    border-radius:9px; padding:8px 15px; font-size:13px; cursor:pointer;
+  }
+  button:hover,select:hover{border-color:var(--accent);}
+  .msg{margin-top:16px; font-size:15px; min-height:22px; text-align:center; font-weight:600;}
+  .msg.over{color:var(--bad);}
+  .hint{color:var(--muted); font-size:11.5px; margin-top:10px; text-align:center; max-width:560px; line-height:1.6;}
+</style>
+</head>
+<body>
+  <h1>Block Blast 8×8 — Playable Rule Check</h1>
+  <div class="sub">
+    <b>Click a piece to pick it up, move the pointer, then click the board to drop it</b> — no need to hold the button down.
+    The landing spot is highlighted live (green = valid, red = blocked). Click the same piece again or press <b>Esc</b> to put it back.
+    Mechanics match <b>sim.py / scoring.py / pieces.py</b> exactly.
+  </div>
+
+  <div class="top">
+    <div class="stat"><div class="v" id="score">0</div><div class="l">Score</div></div>
+    <div class="stat" id="comboStat"><div class="v" id="combo">0</div><div class="l">Combo</div></div>
+    <div class="stat"><div class="v" id="round">1</div><div class="l">Round</div></div>
+    <div class="stat"><div class="v" id="placed">0</div><div class="l">Pieces</div></div>
+  </div>
+
+  <div id="board"></div>
+  <div id="tray"></div>
+  <div id="floater"></div>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="controls">
+    <label>Scoring:
+      <select id="mode">
+        <option value="assumed">assumed (engine default / paper)</option>
+        <option value="real">real_approx (community-reverse-engineered)</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="noplus" checked /> Exclude plus-pentomino (pent_plus)</label>
+    <button id="restart">Restart</button>
+  </div>
+  <div class="hint">
+    Click to pick up, click the board to drop (Esc cancels). All 3 pieces in a batch must be placed before the next batch is dealt.
+    Any fully filled row or column clears instantly. The game ends when none of the remaining pieces fit anywhere.
+  </div>
+
+<script>
+const N = 8;
+
+/* ===== Piece catalog: mirrors pieces.py (BASE_SHAPES + rotate/dedup) so the 38 types match exactly ===== */
+function product(a, b){ const o=[]; for(const x of a) for(const y of b) o.push([x,y]); return o; }
+const range = n => [...Array(n).keys()];
+const BASE_SHAPES = {
+  monomino:   [[0,0]],
+  domino:     [[0,0],[0,1]],
+  diag2:      [[0,0],[1,1]],
+  antidiag2:  [[0,1],[1,0]],
+  tromino_I:  [[0,0],[0,1],[0,2]],
+  tromino_L:  [[0,0],[1,0],[1,1]],
+  diag3:      [[0,0],[1,1],[2,2]],
+  antidiag3:  [[0,2],[1,1],[2,0]],
+  tetro_I:    [[0,0],[0,1],[0,2],[0,3]],
+  tetro_O:    [[0,0],[0,1],[1,0],[1,1]],
+  tetro_T:    [[0,0],[0,1],[0,2],[1,1]],
+  tetro_L:    [[0,0],[1,0],[2,0],[2,1]],
+  tetro_J:    [[0,1],[1,1],[2,1],[2,0]],
+  tetro_S:    [[0,1],[0,2],[1,0],[1,1]],
+  tetro_Z:    [[0,0],[0,1],[1,1],[1,2]],
+  pent_I:     [[0,0],[0,1],[0,2],[0,3],[0,4]],
+  pent_plus:  [[0,1],[1,0],[1,1],[1,2],[2,1]],
+  rect_2x3:   product(range(2), range(3)),
+  square_3x3: product(range(3), range(3)),
+};
+function normalize(cells){
+  const mr = Math.min(...cells.map(c=>c[0]));
+  const mc = Math.min(...cells.map(c=>c[1]));
+  return cells.map(([r,c])=>[r-mr,c-mc]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+}
+const key = cells => cells.map(c=>c.join(',')).join(';');
+function rotate90(cells){ return normalize(cells.map(([r,c])=>[c,-r])); }
+function allOrientations(cells){
+  const seen=new Set(), out=[]; let cur=normalize(cells);
+  for(let i=0;i<4;i++){ const k=key(cur); if(!seen.has(k)){seen.add(k); out.push(cur);} cur=rotate90(cur);}
+  return out;
+}
+function buildCatalog(){
+  const cat=[], seen=new Set();
+  for(const [name,cells] of Object.entries(BASE_SHAPES)){
+    const oris=allOrientations(cells);
+    oris.forEach((ori,i)=>{ const k=key(ori); if(seen.has(k))return; seen.add(k);
+      cat.push({name: oris.length===1?name:`${name}#${i}`, cells: ori}); });
+  }
+  return cat;
+}
+const CATALOG = buildCatalog();   // should be 38 types
+
+/* color by piece size */
+const COLORS = {1:'#8e9bf0', 2:'#46b7f0', 3:'#34d399', 4:'#f5b945', 5:'#f57c46', 6:'#ef5d7a', 9:'#c069e6'};
+
+/* ===== Scoring (mirrors scoring.py) ===== */
+const SCORINGS = {
+  assumed:{ per_cell:1, line_base:10, combo_unit:50, all_clear_bonus:300, clear_table:null, combo_mode:'additive', combo_mult:0.5 },
+  real:   { per_cell:1, line_base:10, combo_unit:50, all_clear_bonus:360, clear_table:[10,20,60,120,200,300], combo_mode:'mult', combo_mult:0.5 },
+};
+function clearPoints(s, L){
+  if(s.clear_table) return s.clear_table[Math.min(L, s.clear_table.length)-1];
+  return s.line_base * L*(L+1)/2;
+}
+function comboPoints(s, streak){ return s.combo_unit * Math.max(0, streak-1); }
+function scorePlacement(s, ncells, lines, empty, comboBefore){
+  let pts = s.per_cell * ncells;
+  let comboAfter;
+  if(lines>0){
+    comboAfter = comboBefore + 1;
+    if(s.combo_mode==='mult'){
+      pts += clearPoints(s,lines) * (1.0 + (comboAfter-1)*s.combo_mult);
+    } else {
+      pts += clearPoints(s,lines);
+      pts += comboPoints(s,comboAfter);
+    }
+    if(empty) pts += s.all_clear_bonus;
+  } else { comboAfter = 0; }
+  return [pts, comboAfter];
+}
+
+/* ===== Game state ===== */
+/* board[r][c] = null when empty, or a color string when filled (truthy works as the old boolean) */
+let board, hand, combo, score, roundNo, placedCount, scoring;
+const boardEl=document.getElementById('board'), trayEl=document.getElementById('tray');
+const floaterEl=document.getElementById('floater');
+const cellEls=[];
+const CELL=46, GAP=4, STRIDE=CELL+GAP, PAD=GAP;   // must match the CSS values
+
+function initDom(){
+  boardEl.innerHTML=''; cellEls.length=0;
+  for(let r=0;r<N;r++){ cellEls.push([]);
+    for(let c=0;c<N;c++){
+      const d=document.createElement('div'); d.className='cell';
+      boardEl.appendChild(d); cellEls[r].push(d);
+    }
+  }
+}
+
+function canPlace(b, cells, r0, c0){
+  for(const [r,c] of cells){ const rr=r0+r, cc=c0+c;
+    if(rr<0||rr>=N||cc<0||cc>=N||b[rr][cc]) return false; }
+  return true;
+}
+function legalPositions(b, cells){
+  const out=[]; for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(canPlace(b,cells,r,c)) out.push([r,c]);
+  return out;
+}
+function applyMove(b, cells, r0, c0, color){
+  for(const [r,c] of cells) b[r0+r][c0+c]=color;
+  const fullRows=[], fullCols=[];
+  for(let r=0;r<N;r++) if(b[r].every(x=>x)) fullRows.push(r);
+  for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!b[r][c]){f=false;break;} if(f) fullCols.push(c); }
+  const flash=[];
+  for(const r of fullRows) for(let c=0;c<N;c++){ b[r][c]=null; flash.push([r,c]); }
+  for(const c of fullCols) for(let r=0;r<N;r++){ b[r][c]=null; flash.push([r,c]); }
+  const cleared=fullRows.length+fullCols.length;
+  let empty=true; for(let r=0;r<N&&empty;r++) for(let c=0;c<N;c++) if(b[r][c]){empty=false;break;}
+  return {cleared, empty, flash};
+}
+
+let dealPool = CATALOG;
+function rebuildPool(){
+  const noPlus = document.getElementById('noplus').checked;
+  dealPool = CATALOG.filter(p => !(noPlus && p.name==='pent_plus'));
+}
+function deal(){
+  hand = [0,1,2].map(()=>{ const p=dealPool[Math.floor(Math.random()*dealPool.length)];
+    return {cells:p.cells.map(c=>c.slice()), name:p.name, color:COLORS[p.cells.length]||'#8e9bf0', used:false}; });
+}
+function anyMovePossible(){
+  return hand.some(p=>!p.used && legalPositions(board,p.cells).length>0);
+}
+
+function placePiece(i, r0, c0){
+  const p=hand[i];
+  if(!p || p.used || !canPlace(board,p.cells,r0,c0)) return false;
+  const {cleared, empty, flash}=applyMove(board, p.cells, r0, c0, p.color);
+  const [pts, newCombo]=scorePlacement(scoring, p.cells.length, cleared, empty, combo);
+  score += pts; combo = newCombo; placedCount++;
+  p.used=true;
+  render();
+  flash.forEach(([r,c])=>{ cellEls[r][c].classList.add('flash');
+    setTimeout(()=>cellEls[r][c].classList.remove('flash'),320); });
+
+  if(hand.every(x=>x.used)){ roundNo++; deal(); render(); }
+  if(!anyMovePossible()) gameOver();
+  return true;
+}
+
+let previewCells=[];
+function clearPreview(){ previewCells.forEach(([r,c])=>cellEls[r][c].classList.remove('preview-ok','preview-bad')); previewCells=[]; }
+function showPreview(cells, r0, c0){
+  clearPreview();
+  const ok=canPlace(board,cells,r0,c0);
+  for(const [r,c] of cells){ const rr=r0+r, cc=c0+c;
+    if(rr>=0&&rr<N&&cc>=0&&cc<N){ cellEls[rr][cc].classList.add(ok?'preview-ok':'preview-bad'); previewCells.push([rr,cc]); } }
+  return ok;
+}
+
+/* ===== Click to pick up / click to drop (no holding) ===== */
+let held=null;            // {i, cells, color, fw, fh, lift, r0, c0, valid}
+let lastX=0, lastY=0;
+function buildFloater(cells, color){
+  const maxr=Math.max(...cells.map(c=>c[0]))+1, maxc=Math.max(...cells.map(c=>c[1]))+1;
+  floaterEl.style.gridTemplateColumns=`repeat(${maxc},${CELL}px)`;
+  floaterEl.innerHTML='';
+  const set=new Set(cells.map(c=>c[0]+'_'+c[1]));
+  for(let r=0;r<maxr;r++) for(let c=0;c<maxc;c++){
+    const d=document.createElement('div'); const on=set.has(r+'_'+c);
+    d.className='fc '+(on?'on':'off'); if(on) d.style.background=color;
+    floaterEl.appendChild(d);
+  }
+  return {fw: maxc*CELL+(maxc-1)*GAP, fh: maxr*CELL+(maxr-1)*GAP};
+}
+function grab(i, ev){
+  const p=hand[i]; if(p.used) return;
+  if(ev) ev.preventDefault();
+  if(held && held.i===i){ cancelHeld(); return; }   // click the same piece again = put back
+  const touch = ev && ev.pointerType==='touch';
+  const dims=buildFloater(p.cells, p.color);
+  held={ i, cells:p.cells, color:p.color, fw:dims.fw, fh:dims.fh, lift: touch?90:0, r0:null, c0:null, valid:false };
+  floaterEl.style.display='grid';
+  renderTray();
+  updateHeld(lastX, lastY);
+}
+function cancelHeld(){ held=null; floaterEl.style.display='none'; clearPreview(); renderTray(); }
+function updateHeld(x, y){
+  if(!held) return;
+  const left = x - 0.5*held.fw;
+  const top  = y - 0.5*held.fh - held.lift;
+  floaterEl.style.transform=`translate(${left}px, ${top}px)`;
+  const br=boardEl.getBoundingClientRect();
+  const c0=Math.round((left - br.left - PAD)/STRIDE);
+  const r0=Math.round((top  - br.top  - PAD)/STRIDE);
+  held.r0=r0; held.c0=c0;
+  const near = r0>-2 && r0<N+1 && c0>-2 && c0<N+1;
+  if(near) held.valid=showPreview(held.cells, r0, c0);
+  else { clearPreview(); held.valid=false; }
+}
+function tryDrop(x, y){
+  if(!held) return;
+  updateHeld(x, y);
+  if(held.valid && placePiece(held.i, held.r0, held.c0)){
+    held=null; floaterEl.style.display='none'; clearPreview();
+  }
+}
+window.addEventListener('pointermove',(e)=>{ lastX=e.clientX; lastY=e.clientY; if(held) updateHeld(e.clientX, e.clientY); });
+window.addEventListener('keydown',(e)=>{ if(e.key==='Escape') cancelHeld(); });
+boardEl.addEventListener('pointerdown',(e)=>{ if(held){ e.preventDefault(); tryDrop(e.clientX, e.clientY); } });
+
+function render(){
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const el=cellEls[r][c], col=board[r][c];
+    el.classList.toggle('filled', !!col);
+    el.style.background = col || '';
+  }
+  document.getElementById('score').textContent=Math.round(score);
+  document.getElementById('combo').textContent=combo;
+  document.getElementById('round').textContent=roundNo;
+  document.getElementById('placed').textContent=placedCount;
+  document.getElementById('comboStat').classList.toggle('combo-on', combo>0);
+  renderTray();
+}
+
+function renderTray(){
+  trayEl.innerHTML='';
+  hand.forEach((p,i)=>{
+    const maxr=Math.max(...p.cells.map(c=>c[0]))+1;
+    const maxc=Math.max(...p.cells.map(c=>c[1]))+1;
+    const wrap=document.createElement('div');
+    wrap.className='piece'+(p.used?' used':'')+(held&&held.i===i?' held':'');
+    wrap.style.gridTemplateColumns=`repeat(${maxc},30px)`;
+    const filledSet=new Set(p.cells.map(c=>c[0]+'_'+c[1]));
+    for(let r=0;r<maxr;r++) for(let c=0;c<maxc;c++){
+      const d=document.createElement('div');
+      const on=filledSet.has(r+'_'+c);
+      d.className='pc '+(on?'on':'off');
+      if(on) d.style.background=p.color;
+      wrap.appendChild(d);
+    }
+    if(!p.used) wrap.addEventListener('pointerdown',(ev)=>grab(i, ev));
+    trayEl.appendChild(wrap);
+  });
+}
+
+function gameOver(){
+  const m=document.getElementById('msg');
+  m.textContent=`Game over — final score ${Math.round(score)} (${placedCount} pieces placed).`;
+  m.className='msg over';
+}
+
+function restart(){
+  scoring = SCORINGS[document.getElementById('mode').value];
+  rebuildPool();
+  board=Array.from({length:N},()=>Array(N).fill(null));
+  combo=0; score=0; roundNo=1; placedCount=0; held=null; floaterEl.style.display='none';
+  document.getElementById('msg').textContent=''; document.getElementById('msg').className='msg';
+  deal(); render();
+}
+
+document.getElementById('restart').addEventListener('click',restart);
+document.getElementById('mode').addEventListener('change',restart);
+document.getElementById('noplus').addEventListener('change',restart);
+
+initDom();
+restart();
+console.log('catalog piece types =', CATALOG.length, '(should be 38)');
+</script>
+</body>
+</html>
