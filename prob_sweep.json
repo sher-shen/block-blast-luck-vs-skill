@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "n_seeds": 50,
+    "max_rounds": 150,
+    "num_types": 38,
+    "uniform_mu": 3.8158,
+    "big_pieces": [
+      "pent_I#0",
+      "pent_I#1",
+      "pent_plus",
+      "rect_2x3#0",
+      "rect_2x3#1",
+      "square_3x3"
+    ],
+    "policy": "greedy"
+  },
+  "size_sweep": [
+    {
+      "mu": 3.4062,
+      "surv_mean": 37.34,
+      "surv_sd": 23.09,
+      "score_mean": 1587.1,
+      "score_sd": 1083.0,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 0.0
+    },
+    {
+      "mu": 3.5224,
+      "surv_mean": 27.34,
+      "surv_sd": 18.28,
+      "score_mean": 1261.1,
+      "score_sd": 1020.7,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 0.25
+    },
+    {
+      "mu": 3.6286,
+      "surv_mean": 23.34,
+      "surv_sd": 19.62,
+      "score_mean": 1016.7,
+      "score_sd": 999.1,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 0.5
+    },
+    {
+      "mu": 3.8158,
+      "surv_mean": 14.66,
+      "surv_sd": 8.18,
+      "score_mean": 669.7,
+      "score_sd": 506.5,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 1.0
+    },
+    {
+      "mu": 4.1136,
+      "surv_mean": 10.58,
+      "surv_sd": 4.05,
+      "score_mean": 465.3,
+      "score_sd": 263.6,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 2.0
+    },
+    {
+      "mu": 4.5179,
+      "surv_mean": 7.6,
+      "surv_sd": 2.48,
+      "score_mean": 379.0,
+      "score_sd": 223.2,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 4.0
+    },
+    {
+      "mu": 4.9625,
+      "surv_mean": 7.36,
+      "surv_sd": 2.85,
+      "score_mean": 427.9,
+      "score_sd": 260.2,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "f": 8.0
+    }
+  ],
+  "packability": {
+    "baseline": {
+      "mu": 3.8158,
+      "surv_mean": 14.66,
+      "surv_sd": 8.18,
+      "score_mean": 669.7,
+      "score_sd": 506.5,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "upweighted": []
+    },
+    "easy-3 (straight)": {
+      "mu": 3.6458,
+      "surv_mean": 23.46,
+      "surv_sd": 14.72,
+      "score_mean": 1037.2,
+      "score_sd": 735.7,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "upweighted": [
+        "tromino_I#0",
+        "tromino_I#1"
+      ]
+    },
+    "hard-3 (diagonal)": {
+      "mu": 3.6458,
+      "surv_mean": 14.06,
+      "surv_sd": 8.46,
+      "score_mean": 552.8,
+      "score_sd": 449.2,
+      "censored_frac": 0.0,
+      "n": 50,
+      "max_rounds": 150,
+      "upweighted": [
+        "diag3#0",
+        "diag3#1"
+      ]
+    }
+  }
+}

@@ -3,6 +3,12 @@
 
 > **In one sentence**: in 8×8 Block Blast-style games (single-player + random piece draws + survival type), we operationalize **luck** as a computable quantity — **the extra points a player with a "god's-eye view" (knowing the future pieces in advance) scores over an online optimal player who can only see the current state**. This is precisely the **value of the information the player is missing (value of hindsight)**. We then cross-validate with three independent lines of evidence — variance decomposition, a skill ladder, and search convergence — to give a quantitative answer to "how much of this game is really luck."
 
+<p align="center">
+  <img src="assets/demo_gameplay.gif" width="380" alt="Block Blast gameplay: the greedy engine placing pieces, clearing rows and columns, scoring combos">
+</p>
+
+> *The engine actually playing: 3 pieces are dealt per round, full rows/columns clear instantly (the white flash), and the combo counter rewards consecutive clears. Try it yourself in [`play.html`](play.html) — a zero-dependency browser version with a human-vs-AI mode.*
+
 ---
 
 ## Why do this / how it differs from existing work
@@ -123,10 +129,23 @@ killer sequences — it's just that such sequences are **extremely rare**.
 
 ## Play it yourself
 
-- A self-contained, zero-dependency playable version lives in `play.html` — just open it in any browser.
+- A self-contained, zero-dependency playable version lives in [`play.html`](play.html) — just open it in any browser.
 - Click a piece to pick it up, move the pointer, then click the board to drop it (no dragging/holding needed); press Esc to cancel.
 - It mirrors the exact mechanics of `sim.py` / `scoring.py` / `pieces.py` (the same 38-piece catalog, the non-linear scoring, instant row/column clears, the combo counter, and the game-over condition), so it is a faithful way to sanity-check the rules by hand.
 - A checkbox lets you exclude the plus-pentomino (`pent_plus`), and a dropdown switches between the `assumed` and `real_approx` scoring tables.
+- **Battle the AI** (a checkbox): a second board appears and the `strong` AI plays the **same pieces** as you, on its own board. Neither side can see the next batch — a fair head-to-head on an identical draw.
+
+---
+
+## Dealing difficulty: a load / stability model
+
+A natural follow-up — *if you raise the probability of certain pieces, how does survival change, and why?* — turns out to be a **stochastic bin-packing stability** problem. The deal distribution `p` sets a **load** `ρ(p) = μ(p)/Γ(p)` (mean cells dealt per piece ÷ the board's sustainable clear-capacity); survival is long when `ρ<1` and collapses past a **phase transition** at `ρ≈1`. Raising a piece's probability moves `ρ` through **two channels — its size (μ) and its packability (Γ)**. Full derivation, the exact clear-rate identity, and the empirical sweep are in **[`DIFFICULTY_MODEL.md`](DIFFICULTY_MODEL.md)**.
+
+<p align="center">
+  <img src="assets/demo_difficulty.gif" width="640" alt="Two boards fed the same mean piece size: a straight-bar deal survives long while a diagonal-heavy deal jams and dies">
+</p>
+
+> *Two boards dealt the **same mean piece size μ**, differing only in shape: upweighting straight bars (left) vs diagonals of the same size (right). The diagonal board fragments and dies while the bar board plays on — isolating the **packability** term `Γ` from size. Across n=50 seeds this is a 40% shorter survival at identical μ.*
 
 ---
 
